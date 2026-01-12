@@ -1,8 +1,6 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Circle, CheckCircle2 } from "lucide-react";
-import { FcGoogle } from "react-icons/fc";
-import { FaGithub } from "react-icons/fa";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import {
@@ -12,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
+import Image from "next/image";
 import {
   Form,
   FormControl,
@@ -111,7 +109,12 @@ export function RegisterForm() {
                     className="w-full"
                     disabled={isPending}
                   >
-                    <FcGoogle className="h-5 w-5" />
+                    <Image
+                      alt="Google Logo"
+                      src="/google.svg"
+                      width={20}
+                      height={20}
+                    />
                     Sign up with Google
                   </Button>
                   <Button
@@ -119,7 +122,12 @@ export function RegisterForm() {
                     variant={"outline"}
                     disabled={isPending}
                   >
-                    <FaGithub className="h-5 w-5" />
+                    <Image
+                      alt="Github Logo"
+                      src="/github.svg"
+                      width={20}
+                      height={20}
+                    />
                     Sign up with Github
                   </Button>
                 </div>
@@ -179,11 +187,10 @@ export function RegisterForm() {
                             <div
                               // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                               key={index}
-                              className={`flex items-center text-xs transition-colors duration-200 ${
-                                criterion.met
-                                  ? "text-green-600 dark:text-green-400"
-                                  : "text-muted-foreground"
-                              }`}
+                              className={`flex items-center text-xs transition-colors duration-200 ${criterion.met
+                                ? "text-green-600 dark:text-green-400"
+                                : "text-muted-foreground"
+                                }`}
                             >
                               {criterion.met ? (
                                 <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
@@ -226,7 +233,7 @@ export function RegisterForm() {
                 </div>
                 <div className="text-center text-sm">
                   Already have an account?{" "}
-                  <Link href="/signin" className="underline underline-offset-4">
+                  <Link href="/login" className="underline underline-offset-4">
                     Sign In
                   </Link>
                 </div>

@@ -18,9 +18,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { FcGoogle } from "react-icons/fc";
-import { FaGithub } from "react-icons/fa";
 
+import Image from "next/image";
 import { Input } from "@/components/ui/input";
 
 import { Button } from "@/components/ui/button";
@@ -85,7 +84,12 @@ export function LoginForm() {
                     type="button"
                     disabled={isPending}
                   >
-                    <FcGoogle className="h-5 w-5" />
+                    <Image
+                     alt="Google Logo"
+                     src="/google.svg"
+                     width={20}
+                     height={20}
+                    />
                     Continue with Google
                   </Button>
                   <Button
@@ -94,7 +98,12 @@ export function LoginForm() {
                     type="button"
                     disabled={isPending}
                   >
-                    <FaGithub className="h-5 w-5" />
+                    <Image
+                      alt="Github Logo"
+                      src="/github.svg"
+                      width={20}
+                      height={20}
+                    />
                     Continue with Github
                   </Button>
                 </div>

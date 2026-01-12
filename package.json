@@ -1,5 +1,10 @@
 {
-  "name": "knot",
+  "name": "Relay",
+  "description": "A workflow automation software",
+  "author": {
+    "name": "Yashwanth Aravind",
+    "url": "https://github.com/yash7007"
+  },
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -64,7 +69,6 @@
     "react-day-picker": "^9.13.0",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.71.0",
-    "react-icons": "^5.5.0",
     "react-resizable-panels": "^4.3.3",
     "recharts": "2.15.4",
     "server-only": "^0.0.1",
