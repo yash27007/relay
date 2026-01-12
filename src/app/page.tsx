@@ -1,12 +1,45 @@
-import { requireAuth } from "@/lib/auth-utils";
-import { caller } from "@/trpc/server";
+"use client"
 
-export default async function Page(){
-  await requireAuth();
-  const data = await caller.getUsers();
-  return(
+import { Button } from "@/components/ui/button"
+import { signOut } from "@/lib/auth-client"
+import { useTRPC } from "@/trpc/client"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { redirect } from "next/navigation"
+import { toast } from "sonner"
+
+export default function Page() {
+  const trpc = useTRPC()
+  const queryClient = useQueryClient()
+  const { data } = useQuery(trpc.getWorkflows.queryOptions())
+  const create = useMutation(trpc.createWorkflow.mutationOptions({
+    onSuccess: () => {
+      queryClient.invalidateQueries(trpc.getWorkflows.queryOptions())
+    }
+  }))
+  return (
     <div className="min-h-screen min-w-screen flex items-center justify-center">
-      {JSON.stringify(data)}
+      <div className="flex flex-col gap-3 items-center">
+
+        {JSON.stringify(data)}
+        <Button onClick={async () => {
+          const { success, message } = await create.mutateAsync()
+          toast.error("Workflow created")
+          toast.message(`Success : ${success} and message ${message}`)
+        }}>
+          Create Workflow
+        </Button>
+        <Button onClick={() => {
+          signOut({
+            fetchOptions: {
+              onSuccess: () => {
+                redirect("/login")
+              }
+            }
+          })
+        }}>
+          Logout
+        </Button>
+      </div>
     </div>
   )
 

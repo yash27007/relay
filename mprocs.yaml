@@ -1,0 +1,5 @@
+procs:
+  inngest-cli:
+    cmd: ["bun","inngest-cli"]
+  next:
+    cmd:  ["bun","dev"]
