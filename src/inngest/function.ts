@@ -56,7 +56,7 @@ export const execute = inngest.createFunction(
     // );
 
     return {
-      openAiSteps,
+      // openAiSteps  ,
       geminSteps,
       // anthropicSteps,
     };
