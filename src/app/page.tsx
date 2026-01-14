@@ -1,11 +1,11 @@
 "use client";
 
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { redirect } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/lib/auth-client";
 import { useTRPC } from "@/trpc/client";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { redirect } from "next/navigation";
-import { toast } from "sonner";
 
 export default function Page() {
   const trpc = useTRPC();

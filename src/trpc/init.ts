@@ -37,13 +37,13 @@
 //   return next({ ctx: { ...ctx, auth: session } });
 // });
 
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/db";
-import { polarClient } from "@/lib/polar";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { headers } from "next/headers";
 import { cache } from "react";
 import superjson from "superjson";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { polarClient } from "@/lib/polar";
 
 /**
  * 1. BETTER CONTEXT
@@ -76,23 +76,25 @@ export const baseProcedure = t.procedure;
  * 3. BETTER PROTECTED PROCEDURE
  * Now this middleware is much cleaner because the session is already in the 'ctx'.
  */
-export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
-  // If no session was found in the context, block the request
-  if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You must be logged in to access this resource",
-    });
-  }
+export const protectedProcedure = baseProcedure.use(
+  async ({ ctx, next }) => {
+    // If no session was found in the context, block the request
+    if (!ctx.session || !ctx.session.user) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "You must be logged in to access this resource",
+      });
+    }
 
-  // Pass the valid session forward
-  return next({
-    ctx: {
-      ...ctx,
-      auth: ctx.session, // TypeScript now knows session is NOT null
-    },
-  });
-});
+    // Pass the valid session forward
+    return next({
+      ctx: {
+        ...ctx,
+        auth: ctx.session, // TypeScript now knows session is NOT null
+      },
+    });
+  },
+);
 
 /**
  * 4. PREMIUM PROCEDURE
@@ -117,7 +119,8 @@ export const premiumProcedure = protectedProcedure.use(
 
     // For recurring subscriptions: check activeSubscriptions
     const hasActiveSubscription =
-      customer.activeSubscriptions && customer.activeSubscriptions.length > 0;
+      customer.activeSubscriptions &&
+      customer.activeSubscriptions.length > 0;
 
     if (!hasActiveSubscription) {
       throw new TRPCError({

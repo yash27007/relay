@@ -1,19 +1,18 @@
 "use client";
 
-import * as React from "react";
 import {
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
 } from "lucide-react";
+import * as React from "react";
 import {
+  type DayButton,
   DayPicker,
   getDefaultClassNames,
-  type DayButton,
 } from "react-day-picker";
-
-import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 function Calendar({
   className,
@@ -33,7 +32,7 @@ function Calendar({
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn(
-        "bg-background group/calendar p-3 [--cell-size:--spacing(8)] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
+        "bg-background group/calendar p-3 [--cell-size:--spacing(8)] in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent",
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className,
@@ -50,7 +49,10 @@ function Calendar({
           "flex gap-4 flex-col md:flex-row relative",
           defaultClassNames.months,
         ),
-        month: cn("flex flex-col w-full gap-4", defaultClassNames.month),
+        month: cn(
+          "flex flex-col w-full gap-4",
+          defaultClassNames.month,
+        ),
         nav: cn(
           "flex items-center gap-1 w-full absolute top-0 inset-x-0 justify-between",
           defaultClassNames.nav,
@@ -114,8 +116,14 @@ function Calendar({
           "rounded-l-md bg-accent",
           defaultClassNames.range_start,
         ),
-        range_middle: cn("rounded-none", defaultClassNames.range_middle),
-        range_end: cn("rounded-r-md bg-accent", defaultClassNames.range_end),
+        range_middle: cn(
+          "rounded-none",
+          defaultClassNames.range_middle,
+        ),
+        range_end: cn(
+          "rounded-r-md bg-accent",
+          defaultClassNames.range_end,
+        ),
         today: cn(
           "bg-accent text-accent-foreground rounded-md data-[selected=true]:rounded-none",
           defaultClassNames.today,
@@ -132,6 +140,7 @@ function Calendar({
         ...classNames,
       }}
       components={{
+        // biome-ignore lint/correctness/noNestedComponentDefinitions: <shadcn component>
         Root: ({ className, rootRef, ...props }) => {
           return (
             <div
@@ -142,10 +151,14 @@ function Calendar({
             />
           );
         },
+        // biome-ignore lint/correctness/noNestedComponentDefinitions: <shadcn component>
         Chevron: ({ className, orientation, ...props }) => {
           if (orientation === "left") {
             return (
-              <ChevronLeftIcon className={cn("size-4", className)} {...props} />
+              <ChevronLeftIcon
+                className={cn("size-4", className)}
+                {...props}
+              />
             );
           }
 
@@ -159,10 +172,14 @@ function Calendar({
           }
 
           return (
-            <ChevronDownIcon className={cn("size-4", className)} {...props} />
+            <ChevronDownIcon
+              className={cn("size-4", className)}
+              {...props}
+            />
           );
         },
         DayButton: CalendarDayButton,
+        // biome-ignore lint/correctness/noNestedComponentDefinitions: <shadcn component>
         WeekNumber: ({ children, ...props }) => {
           return (
             <td {...props}>

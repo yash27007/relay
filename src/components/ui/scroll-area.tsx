@@ -1,7 +1,7 @@
 "use client";
 
-import * as React from "react";
 import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
+import type * as React from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -32,7 +32,9 @@ function ScrollBar({
   className,
   orientation = "vertical",
   ...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>) {
+}: React.ComponentProps<
+  typeof ScrollAreaPrimitive.ScrollAreaScrollbar
+>) {
   return (
     <ScrollAreaPrimitive.ScrollAreaScrollbar
       data-slot="scroll-area-scrollbar"

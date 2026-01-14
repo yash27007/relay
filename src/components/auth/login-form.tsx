@@ -1,7 +1,13 @@
 "use client";
-import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import z from "zod";
+
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -9,7 +15,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
 import {
   Form,
   FormControl,
@@ -18,15 +23,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
-import Image from "next/image";
 import { Input } from "@/components/ui/input";
-
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { signIn } from "@/lib/auth-client";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
   email: z.email("Please enter a valid email address"),
@@ -143,7 +141,11 @@ export function LoginForm() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full" disabled={isPending}>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isPending}
+                  >
                     Login
                   </Button>
                 </div>

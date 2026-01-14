@@ -1,18 +1,21 @@
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/dashboard";
+import {
+  SidebarInset,
+  SidebarProvider,
+} from "@/components/ui/sidebar";
 import { requireAuth } from "@/lib/auth-utils";
 
 export default async function DashboardLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-    await requireAuth();
+  await requireAuth();
 
-    return (
-        <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset>{children}</SidebarInset>
-        </SidebarProvider>
-    );
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>{children}</SidebarInset>
+    </SidebarProvider>
+  );
 }

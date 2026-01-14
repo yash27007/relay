@@ -1,4 +1,3 @@
-/** biome-ignore-all assist/source/organizeImports: <explanation> */
 "use client";
 import {
   CreditCardIcon,
@@ -12,10 +11,11 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { checkout, signOut } from "@/lib/auth-client";
-import { useTheme } from "next-themes";
-import { Badge } from "@/components/ui/badge";
 import { usePathname, useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
+import { useHasActiveSubscription } from "@/components/subscriptions/hooks";
+import { Badge } from "@/components/ui/badge";
 import {
   Sidebar,
   SidebarContent,
@@ -27,8 +27,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useHasActiveSubscription } from "@/components/subscriptions/hooks";
-import { useEffect, useState } from "react";
+import { checkout, signOut } from "@/lib/auth-client";
 
 const menuItems = [
   {
@@ -55,7 +54,8 @@ const menuItems = [
 export const AppSidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const { hasActiveSubscription, isLoading } = useHasActiveSubscription();
+  const { hasActiveSubscription, isLoading } =
+    useHasActiveSubscription();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -155,9 +155,15 @@ export const AppSidebar = () => {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
-              tooltip={mounted && theme === "dark" ? "Light Mode" : "Dark Mode"}
+              tooltip={
+                mounted && theme === "dark"
+                  ? "Light Mode"
+                  : "Dark Mode"
+              }
               className="gap-x-4 h-10 px-4"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              onClick={() =>
+                setTheme(theme === "dark" ? "light" : "dark")
+              }
             >
               {mounted && theme === "dark" ? (
                 <SunIcon className="h-4 w-4" />
@@ -165,7 +171,9 @@ export const AppSidebar = () => {
                 <MoonIcon className="h-4 w-4" />
               )}
               <span>
-                {mounted && theme === "dark" ? "Light Mode" : "Dark Mode"}
+                {mounted && theme === "dark"
+                  ? "Light Mode"
+                  : "Dark Mode"}
               </span>
             </SidebarMenuButton>
           </SidebarMenuItem>

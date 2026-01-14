@@ -1,8 +1,6 @@
-import { inngest } from "./client";
 import { google } from "@ai-sdk/google";
-import { openai } from "@ai-sdk/openai";
-import { anthropic } from "@ai-sdk/anthropic";
 import { generateText } from "ai";
+import { inngest } from "./client";
 
 export const execute = inngest.createFunction(
   { id: "execute-ai" },

@@ -1,8 +1,13 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Circle, CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Circle } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,7 +15,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import Image from "next/image";
 import {
   Form,
   FormControl,
@@ -19,12 +23,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Link from "next/link";
 import { signUp } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 
 const registerSchema = z
   .object({
@@ -35,7 +35,10 @@ const registerSchema = z
       .min(6, "Password should be minimum 6 characters long")
       .regex(/[A-Z]/, "Password should have atleast one upper case")
       .regex(/[a-z]/, "Password should have atleast one lower case")
-      .regex(/[0-9]/, "Password should have atleast one number from 0-9")
+      .regex(
+        /[0-9]/,
+        "Password should have atleast one number from 0-9",
+      )
       .regex(
         /[^a-zA-Z0-9]/,
         "Password should have atleast one special character",
@@ -83,11 +86,23 @@ export function RegisterForm() {
   const passwordValue = form.watch("password") || "";
 
   const passwordCriteria = [
-    { label: "At least 6 characters", met: passwordValue.length >= 6 },
-    { label: "One uppercase letter", met: /[A-Z]/.test(passwordValue) },
-    { label: "One lowercase letter", met: /[a-z]/.test(passwordValue) },
+    {
+      label: "At least 6 characters",
+      met: passwordValue.length >= 6,
+    },
+    {
+      label: "One uppercase letter",
+      met: /[A-Z]/.test(passwordValue),
+    },
+    {
+      label: "One lowercase letter",
+      met: /[a-z]/.test(passwordValue),
+    },
     { label: "One number", met: /[0-9]/.test(passwordValue) },
-    { label: "One special character", met: /[^a-zA-Z0-9]/.test(passwordValue) },
+    {
+      label: "One special character",
+      met: /[^a-zA-Z0-9]/.test(passwordValue),
+    },
   ];
 
   const isPending = form.formState.isSubmitting;
@@ -96,7 +111,9 @@ export function RegisterForm() {
     <div className="flex flex-col gap-6">
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-semibold">Get Started</CardTitle>
+          <CardTitle className="text-2xl font-semibold">
+            Get Started
+          </CardTitle>
           <CardDescription>Sign up to continue</CardDescription>
         </CardHeader>
         <CardContent>
@@ -183,28 +200,31 @@ export function RegisterForm() {
                           />
                         </FormControl>
                         <div className="mt-2 space-y-1.5 px-1">
-                          {passwordCriteria.map((criterion, index) => (
-                            <div
-                              // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                              key={index}
-                              className={`flex items-center text-xs transition-colors duration-200 ${
-                                criterion.met
-                                  ? "text-green-600 dark:text-green-400"
-                                  : "text-muted-foreground"
-                              }`}
-                            >
-                              {criterion.met ? (
-                                <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
-                              ) : (
-                                <Circle className="mr-2 h-3.5 w-3.5 opacity-50" />
-                              )}
-                              <span
-                                className={criterion.met ? "font-medium" : ""}
+                          {passwordCriteria.map(
+                            (criterion, index) => (
+                              <div
+                                key={index}
+                                className={`flex items-center text-xs transition-colors duration-200 ${
+                                  criterion.met
+                                    ? "text-green-600 dark:text-green-400"
+                                    : "text-muted-foreground"
+                                }`}
                               >
-                                {criterion.label}
-                              </span>
-                            </div>
-                          ))}
+                                {criterion.met ? (
+                                  <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
+                                ) : (
+                                  <Circle className="mr-2 h-3.5 w-3.5 opacity-50" />
+                                )}
+                                <span
+                                  className={
+                                    criterion.met ? "font-medium" : ""
+                                  }
+                                >
+                                  {criterion.label}
+                                </span>
+                              </div>
+                            ),
+                          )}
                         </div>
 
                         <FormMessage />
@@ -228,13 +248,20 @@ export function RegisterForm() {
                       </FormItem>
                     )}
                   />
-                  <Button className="w-full" type="submit" disabled={isPending}>
+                  <Button
+                    className="w-full"
+                    type="submit"
+                    disabled={isPending}
+                  >
                     Sign up
                   </Button>
                 </div>
                 <div className="text-center text-sm">
                   Already have an account?{" "}
-                  <Link href="/login" className="underline underline-offset-4">
+                  <Link
+                    href="/login"
+                    className="underline underline-offset-4"
+                  >
                     Sign In
                   </Link>
                 </div>

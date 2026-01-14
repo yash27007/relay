@@ -28,7 +28,10 @@ export default function Page() {
     <div>
       <Head>
         <title>sentry-example-page</title>
-        <meta name="description" content="Test Sentry for your Next.js app!" />
+        <meta
+          name="description"
+          content="Test Sentry for your Next.js app!"
+        />
       </Head>
 
       <main>
@@ -49,7 +52,8 @@ export default function Page() {
         <h1>sentry-example-page</h1>
 
         <p className="description">
-          Click the button below, and view the sample error on the Sentry{" "}
+          Click the button below, and view the sample error on the
+          Sentry{" "}
           <a
             target="_blank"
             rel="noopener"
@@ -100,9 +104,9 @@ export default function Page() {
         ) : !isConnected ? (
           <div className="connectivity-error">
             <p>
-              It looks like network requests to Sentry are being blocked, which
-              will prevent errors from being captured. Try disabling your
-              ad-blocker to complete the test.
+              It looks like network requests to Sentry are being
+              blocked, which will prevent errors from being captured.
+              Try disabling your ad-blocker to complete the test.
             </p>
           </div>
         ) : (
