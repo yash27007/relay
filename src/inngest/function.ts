@@ -4,7 +4,6 @@ import { openai } from "@ai-sdk/openai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { generateText } from "ai";
 
-
 export const execute = inngest.createFunction(
   { id: "execute-ai" },
   { event: "execute/ai" },
@@ -22,7 +21,7 @@ export const execute = inngest.createFunction(
           recordInputs: true,
           recordOutputs: true,
         },
-      }
+      },
     );
     // await step.sleep("Waiting for openai", "10s");
     // const { steps: openAiSteps } = await step.ai.wrap(
@@ -60,5 +59,5 @@ export const execute = inngest.createFunction(
       geminSteps,
       // anthropicSteps,
     };
-  }
+  },
 );

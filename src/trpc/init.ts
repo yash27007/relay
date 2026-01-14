@@ -39,6 +39,7 @@
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { polarClient } from "@/lib/polar";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { headers } from "next/headers";
 import { cache } from "react";
@@ -92,3 +93,45 @@ export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
     },
   });
 });
+
+/**
+ * 4. PREMIUM PROCEDURE
+ * Checks if user has an active subscription to access premium features.
+ *
+ * FOR ONE-TIME PURCHASES (if you switch later):
+ * The Polar SDK doesn't have a direct `customers.orders` method.
+ * Instead, use the customer state which includes order history:
+ * ```
+ * const customer = await polarClient.customers.getStateExternal({
+ *   externalId: ctx.auth.user.id,
+ * });
+ * // For one-time purchases, you'd need to track orders separately
+ * // or use a different approach like storing purchase in your DB
+ * ```
+ */
+export const premiumProcedure = protectedProcedure.use(
+  async ({ ctx, next }) => {
+    const customer = await polarClient.customers.getStateExternal({
+      externalId: ctx.auth.user.id,
+    });
+
+    // For recurring subscriptions: check activeSubscriptions
+    const hasActiveSubscription =
+      customer.activeSubscriptions && customer.activeSubscriptions.length > 0;
+
+    if (!hasActiveSubscription) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Active subscription required",
+      });
+    }
+
+    return next({
+      ctx: {
+        ...ctx,
+        customer,
+        subscription: customer.activeSubscriptions[0],
+      },
+    });
+  },
+);

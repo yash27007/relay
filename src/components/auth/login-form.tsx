@@ -85,10 +85,10 @@ export function LoginForm() {
                     disabled={isPending}
                   >
                     <Image
-                     alt="Google Logo"
-                     src="/google.svg"
-                     width={20}
-                     height={20}
+                      alt="Google Logo"
+                      src="/google.svg"
+                      width={20}
+                      height={20}
                     />
                     Continue with Google
                   </Button>

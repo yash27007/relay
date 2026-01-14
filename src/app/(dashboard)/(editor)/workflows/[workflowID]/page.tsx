@@ -18,18 +18,16 @@
  * This pattern uses Next.js route groups to apply different layouts (sidebar navigation vs. focused editor) while keeping a clean URL structure.
  */
 
-import { requireAuth } from "@/lib/auth-utils"
-
-
+import { requireAuth } from "@/lib/auth-utils";
 
 interface PageProps {
-    params: Promise<{
-        workflowID: string
-    }>
+  params: Promise<{
+    workflowID: string;
+  }>;
 }
 
 export default async function ExecutionIdPage({ params }: PageProps) {
-    requireAuth()
-    const { workflowID } = await params
-    return <p>Workflow id: {workflowID}</p>
+  requireAuth();
+  const { workflowID } = await params;
+  return <p>Workflow id: {workflowID}</p>;
 }

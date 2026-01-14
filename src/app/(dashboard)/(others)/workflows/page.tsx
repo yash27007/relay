@@ -1,8 +1,6 @@
-import { requireAuth } from "@/lib/auth-utils"
+import { requireAuth } from "@/lib/auth-utils";
 
 export default async function WorkflowPage() {
-    requireAuth()
-    return (
-        <p>Workflow</p>
-    )
+  requireAuth();
+  return <p>Workflow</p>;
 }

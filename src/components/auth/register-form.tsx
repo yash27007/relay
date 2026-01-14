@@ -187,10 +187,11 @@ export function RegisterForm() {
                             <div
                               // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                               key={index}
-                              className={`flex items-center text-xs transition-colors duration-200 ${criterion.met
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-muted-foreground"
-                                }`}
+                              className={`flex items-center text-xs transition-colors duration-200 ${
+                                criterion.met
+                                  ? "text-green-600 dark:text-green-400"
+                                  : "text-muted-foreground"
+                              }`}
                             >
                               {criterion.met ? (
                                 <CheckCircle2 className="mr-2 h-3.5 w-3.5" />
