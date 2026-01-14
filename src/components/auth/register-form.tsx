@@ -1,16 +1,14 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Circle, CheckCircle2 } from "lucide-react";
-import { useForm } from "react-hook-form";
-import z from "zod";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { CheckCircle2, Circle } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import z from "zod";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -19,12 +17,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Link from "next/link";
 import { signUp } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 
 const registerSchema = z
   .object({
@@ -36,10 +30,7 @@ const registerSchema = z
       .regex(/[A-Z]/, "Password should have atleast one upper case")
       .regex(/[a-z]/, "Password should have atleast one lower case")
       .regex(/[0-9]/, "Password should have atleast one number from 0-9")
-      .regex(
-        /[^a-zA-Z0-9]/,
-        "Password should have atleast one special character",
-      ),
+      .regex(/[^a-zA-Z0-9]/, "Password should have atleast one special character"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -104,30 +95,12 @@ export function RegisterForm() {
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <div className="grid gap-6">
                 <div className="flex flex-col gap-4">
-                  <Button
-                    variant={"outline"}
-                    className="w-full"
-                    disabled={isPending}
-                  >
-                    <Image
-                      alt="Google Logo"
-                      src="/google.svg"
-                      width={20}
-                      height={20}
-                    />
+                  <Button variant={"outline"} className="w-full" disabled={isPending}>
+                    <Image alt="Google Logo" src="/google.svg" width={20} height={20} />
                     Sign up with Google
                   </Button>
-                  <Button
-                    className="w-full"
-                    variant={"outline"}
-                    disabled={isPending}
-                  >
-                    <Image
-                      alt="Github Logo"
-                      src="/github.svg"
-                      width={20}
-                      height={20}
-                    />
+                  <Button className="w-full" variant={"outline"} disabled={isPending}>
+                    <Image alt="Github Logo" src="/github.svg" width={20} height={20} />
                     Sign up with Github
                   </Button>
                 </div>
@@ -140,11 +113,7 @@ export function RegisterForm() {
                       <FormItem>
                         <FormLabel>Name</FormLabel>
                         <FormControl>
-                          <Input
-                            type="text"
-                            placeholder="Enter you name"
-                            {...field}
-                          />
+                          <Input type="text" placeholder="Enter you name" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -158,11 +127,7 @@ export function RegisterForm() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input
-                            type="email"
-                            placeholder="name@example.com"
-                            {...field}
-                          />
+                          <Input type="email" placeholder="name@example.com" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -198,9 +163,7 @@ export function RegisterForm() {
                               ) : (
                                 <Circle className="mr-2 h-3.5 w-3.5 opacity-50" />
                               )}
-                              <span
-                                className={criterion.met ? "font-medium" : ""}
-                              >
+                              <span className={criterion.met ? "font-medium" : ""}>
                                 {criterion.label}
                               </span>
                             </div>
@@ -218,11 +181,7 @@ export function RegisterForm() {
                       <FormItem>
                         <FormLabel>Confirm Password</FormLabel>
                         <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="******"
-                            {...field}
-                          />
+                          <Input type="password" placeholder="******" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

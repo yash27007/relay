@@ -1,5 +1,5 @@
-import { authClient } from "@/lib/auth-client";
 import { useQuery } from "@tanstack/react-query";
+import { authClient } from "@/lib/auth-client";
 
 /**
  * POLAR BILLING TYPES:
@@ -51,8 +51,7 @@ export const useHasActiveSubscription = () => {
 
   // For recurring subscriptions: check activeSubscriptions
   const hasActiveSubscription =
-    customerState?.activeSubscriptions &&
-    customerState.activeSubscriptions.length > 0;
+    customerState?.activeSubscriptions && customerState.activeSubscriptions.length > 0;
 
   return {
     hasActiveSubscription,

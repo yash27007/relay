@@ -37,13 +37,13 @@
 //   return next({ ctx: { ...ctx, auth: session } });
 // });
 
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/db";
-import { polarClient } from "@/lib/polar";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { headers } from "next/headers";
 import { cache } from "react";
 import superjson from "superjson";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { polarClient } from "@/lib/polar";
 
 /**
  * 1. BETTER CONTEXT
@@ -109,29 +109,27 @@ export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
  * // or use a different approach like storing purchase in your DB
  * ```
  */
-export const premiumProcedure = protectedProcedure.use(
-  async ({ ctx, next }) => {
-    const customer = await polarClient.customers.getStateExternal({
-      externalId: ctx.auth.user.id,
+export const premiumProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  const customer = await polarClient.customers.getStateExternal({
+    externalId: ctx.auth.user.id,
+  });
+
+  // For recurring subscriptions: check activeSubscriptions
+  const hasActiveSubscription =
+    customer.activeSubscriptions && customer.activeSubscriptions.length > 0;
+
+  if (!hasActiveSubscription) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Active subscription required",
     });
+  }
 
-    // For recurring subscriptions: check activeSubscriptions
-    const hasActiveSubscription =
-      customer.activeSubscriptions && customer.activeSubscriptions.length > 0;
-
-    if (!hasActiveSubscription) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Active subscription required",
-      });
-    }
-
-    return next({
-      ctx: {
-        ...ctx,
-        customer,
-        subscription: customer.activeSubscriptions[0],
-      },
-    });
-  },
-);
+  return next({
+    ctx: {
+      ...ctx,
+      customer,
+      subscription: customer.activeSubscriptions[0],
+    },
+  });
+});

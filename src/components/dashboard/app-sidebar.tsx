@@ -1,4 +1,3 @@
-/** biome-ignore-all assist/source/organizeImports: <explanation> */
 "use client";
 import {
   CreditCardIcon,
@@ -12,10 +11,11 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { checkout, signOut } from "@/lib/auth-client";
-import { useTheme } from "next-themes";
-import { Badge } from "@/components/ui/badge";
 import { usePathname, useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
+import { useHasActiveSubscription } from "@/components/subscriptions/hooks";
+import { Badge } from "@/components/ui/badge";
 import {
   Sidebar,
   SidebarContent,
@@ -27,8 +27,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useHasActiveSubscription } from "@/components/subscriptions/hooks";
-import { useEffect, useState } from "react";
+import { checkout, signOut } from "@/lib/auth-client";
 
 const menuItems = [
   {
@@ -69,10 +68,7 @@ export const AppSidebar = () => {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="gap-x-4 h-10 px-4 hover:bg-accent/0"
-            >
+            <SidebarMenuButton asChild className="gap-x-4 h-10 px-4 hover:bg-accent/0">
               <Link href="/" prefetch>
                 <Image
                   src="/logo.svg"
@@ -84,10 +80,7 @@ export const AppSidebar = () => {
                 <span className="font-semibold text-xl flex items-center gap-2 dark:text-white">
                   Relay
                   {hasActiveSubscription && (
-                    <Badge
-                      variant={"secondary"}
-                      className="font-semibold tracking-wider"
-                    >
+                    <Badge variant={"secondary"} className="font-semibold tracking-wider">
                       Pro
                     </Badge>
                   )}
@@ -106,11 +99,7 @@ export const AppSidebar = () => {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       tooltip={item.title}
-                      isActive={
-                        item.url === "/"
-                          ? pathname === "/"
-                          : pathname.startsWith(item.url)
-                      }
+                      isActive={item.url === "/" ? pathname === "/" : pathname.startsWith(item.url)}
                       asChild
                       className="gap-x-4 h-10 px-4"
                     >
@@ -164,9 +153,7 @@ export const AppSidebar = () => {
               ) : (
                 <MoonIcon className="h-4 w-4" />
               )}
-              <span>
-                {mounted && theme === "dark" ? "Light Mode" : "Dark Mode"}
-              </span>
+              <span>{mounted && theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

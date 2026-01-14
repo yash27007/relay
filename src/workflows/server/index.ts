@@ -1,10 +1,6 @@
-import z from "zod";
-import {
-  createTRPCRouter,
-  premiumProcedure,
-  protectedProcedure,
-} from "@/trpc/init";
 import { generateSlug } from "random-word-slugs";
+import z from "zod";
+import { createTRPCRouter, premiumProcedure, protectedProcedure } from "@/trpc/init";
 
 export const workflowsRouter = createTRPCRouter({
   create: premiumProcedure.mutation(({ ctx }) => {
@@ -15,23 +11,21 @@ export const workflowsRouter = createTRPCRouter({
       },
     });
   }),
-  remove: protectedProcedure
-    .input(z.object({ id: z.string() }))
-    .mutation(({ ctx, input }) => {
-      return ctx.prisma.workflow.delete({
-        where: {
-          id: input.id,
-          userId: ctx.auth.user.id,
-        },
-      });
-    }),
+  remove: protectedProcedure.input(z.object({ id: z.string() })).mutation(({ ctx, input }) => {
+    return ctx.prisma.workflow.delete({
+      where: {
+        id: input.id,
+        userId: ctx.auth.user.id,
+      },
+    });
+  }),
 
   updateName: protectedProcedure
     .input(
       z.object({
         id: z.string(),
         name: z.string().min(1, "Name cannot be empty"),
-      })
+      }),
     )
     .mutation(({ ctx, input }) => {
       return ctx.prisma.workflow.update({
