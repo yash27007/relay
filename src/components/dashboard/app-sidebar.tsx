@@ -54,7 +54,8 @@ const menuItems = [
 export const AppSidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const { hasActiveSubscription, isLoading } = useHasActiveSubscription();
+  const { hasActiveSubscription, isLoading } =
+    useHasActiveSubscription();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -68,7 +69,10 @@ export const AppSidebar = () => {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="gap-x-4 h-10 px-4 hover:bg-accent/0">
+            <SidebarMenuButton
+              asChild
+              className="gap-x-4 h-10 px-4 hover:bg-accent/0"
+            >
               <Link href="/" prefetch>
                 <Image
                   src="/logo.svg"
@@ -80,7 +84,10 @@ export const AppSidebar = () => {
                 <span className="font-semibold text-xl flex items-center gap-2 dark:text-white">
                   Relay
                   {hasActiveSubscription && (
-                    <Badge variant={"secondary"} className="font-semibold tracking-wider">
+                    <Badge
+                      variant={"secondary"}
+                      className="font-semibold tracking-wider"
+                    >
                       Pro
                     </Badge>
                   )}
@@ -99,7 +106,11 @@ export const AppSidebar = () => {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       tooltip={item.title}
-                      isActive={item.url === "/" ? pathname === "/" : pathname.startsWith(item.url)}
+                      isActive={
+                        item.url === "/"
+                          ? pathname === "/"
+                          : pathname.startsWith(item.url)
+                      }
                       asChild
                       className="gap-x-4 h-10 px-4"
                     >
@@ -144,16 +155,26 @@ export const AppSidebar = () => {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
-              tooltip={mounted && theme === "dark" ? "Light Mode" : "Dark Mode"}
+              tooltip={
+                mounted && theme === "dark"
+                  ? "Light Mode"
+                  : "Dark Mode"
+              }
               className="gap-x-4 h-10 px-4"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              onClick={() =>
+                setTheme(theme === "dark" ? "light" : "dark")
+              }
             >
               {mounted && theme === "dark" ? (
                 <SunIcon className="h-4 w-4" />
               ) : (
                 <MoonIcon className="h-4 w-4" />
               )}
-              <span>{mounted && theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+              <span>
+                {mounted && theme === "dark"
+                  ? "Light Mode"
+                  : "Dark Mode"}
+              </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

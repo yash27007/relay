@@ -76,23 +76,25 @@ export const baseProcedure = t.procedure;
  * 3. BETTER PROTECTED PROCEDURE
  * Now this middleware is much cleaner because the session is already in the 'ctx'.
  */
-export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
-  // If no session was found in the context, block the request
-  if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You must be logged in to access this resource",
-    });
-  }
+export const protectedProcedure = baseProcedure.use(
+  async ({ ctx, next }) => {
+    // If no session was found in the context, block the request
+    if (!ctx.session || !ctx.session.user) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "You must be logged in to access this resource",
+      });
+    }
 
-  // Pass the valid session forward
-  return next({
-    ctx: {
-      ...ctx,
-      auth: ctx.session, // TypeScript now knows session is NOT null
-    },
-  });
-});
+    // Pass the valid session forward
+    return next({
+      ctx: {
+        ...ctx,
+        auth: ctx.session, // TypeScript now knows session is NOT null
+      },
+    });
+  },
+);
 
 /**
  * 4. PREMIUM PROCEDURE
@@ -109,27 +111,30 @@ export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
  * // or use a different approach like storing purchase in your DB
  * ```
  */
-export const premiumProcedure = protectedProcedure.use(async ({ ctx, next }) => {
-  const customer = await polarClient.customers.getStateExternal({
-    externalId: ctx.auth.user.id,
-  });
-
-  // For recurring subscriptions: check activeSubscriptions
-  const hasActiveSubscription =
-    customer.activeSubscriptions && customer.activeSubscriptions.length > 0;
-
-  if (!hasActiveSubscription) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "Active subscription required",
+export const premiumProcedure = protectedProcedure.use(
+  async ({ ctx, next }) => {
+    const customer = await polarClient.customers.getStateExternal({
+      externalId: ctx.auth.user.id,
     });
-  }
 
-  return next({
-    ctx: {
-      ...ctx,
-      customer,
-      subscription: customer.activeSubscriptions[0],
-    },
-  });
-});
+    // For recurring subscriptions: check activeSubscriptions
+    const hasActiveSubscription =
+      customer.activeSubscriptions &&
+      customer.activeSubscriptions.length > 0;
+
+    if (!hasActiveSubscription) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Active subscription required",
+      });
+    }
+
+    return next({
+      ctx: {
+        ...ctx,
+        customer,
+        subscription: customer.activeSubscriptions[0],
+      },
+    });
+  },
+);

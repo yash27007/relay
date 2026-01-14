@@ -1,5 +1,9 @@
 import { AppHeader } from "@/components/dashboard";
-export default function Rest({ children }: { children: React.ReactNode }) {
+export default function Rest({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <>
       <AppHeader />

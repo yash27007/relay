@@ -51,7 +51,8 @@ export const useHasActiveSubscription = () => {
 
   // For recurring subscriptions: check activeSubscriptions
   const hasActiveSubscription =
-    customerState?.activeSubscriptions && customerState.activeSubscriptions.length > 0;
+    customerState?.activeSubscriptions &&
+    customerState.activeSubscriptions.length > 0;
 
   return {
     hasActiveSubscription,

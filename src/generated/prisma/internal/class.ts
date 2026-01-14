@@ -31,14 +31,19 @@ config.runtimeDataModel = JSON.parse(
   '{"models":{"User":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"email","kind":"scalar","type":"String"},{"name":"emailVerified","kind":"scalar","type":"Boolean"},{"name":"image","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"sessions","kind":"object","type":"Session","relationName":"SessionToUser"},{"name":"accounts","kind":"object","type":"Account","relationName":"AccountToUser"},{"name":"workflows","kind":"object","type":"Workflow","relationName":"UserToWorkflow"}],"dbName":"user"},"Session":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"expiresAt","kind":"scalar","type":"DateTime"},{"name":"token","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"ipAddress","kind":"scalar","type":"String"},{"name":"userAgent","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"user","kind":"object","type":"User","relationName":"SessionToUser"}],"dbName":"session"},"Account":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"accountId","kind":"scalar","type":"String"},{"name":"providerId","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"user","kind":"object","type":"User","relationName":"AccountToUser"},{"name":"accessToken","kind":"scalar","type":"String"},{"name":"refreshToken","kind":"scalar","type":"String"},{"name":"idToken","kind":"scalar","type":"String"},{"name":"accessTokenExpiresAt","kind":"scalar","type":"DateTime"},{"name":"refreshTokenExpiresAt","kind":"scalar","type":"DateTime"},{"name":"scope","kind":"scalar","type":"String"},{"name":"password","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":"account"},"Verification":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"identifier","kind":"scalar","type":"String"},{"name":"value","kind":"scalar","type":"String"},{"name":"expiresAt","kind":"scalar","type":"DateTime"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":"verification"},"Workflow":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"userId","kind":"scalar","type":"String"},{"name":"user","kind":"object","type":"User","relationName":"UserToWorkflow"}],"dbName":null}},"enums":{},"types":{}}',
 );
 
-async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
+async function decodeBase64AsWasm(
+  wasmBase64: string,
+): Promise<WebAssembly.Module> {
   const { Buffer } = await import("node:buffer");
   const wasmArray = Buffer.from(wasmBase64, "base64");
   return new WebAssembly.Module(wasmArray);
 }
 
 config.compilerWasm = {
-  getRuntime: async () => await import("@prisma/client/runtime/query_compiler_bg.postgresql.mjs"),
+  getRuntime: async () =>
+    await import(
+      "@prisma/client/runtime/query_compiler_bg.postgresql.mjs"
+    ),
 
   getQueryCompilerWasmModule: async () => {
     const { wasm } = await import(
@@ -48,12 +53,15 @@ config.compilerWasm = {
   },
 };
 
-export type LogOptions<ClientOptions extends Prisma.PrismaClientOptions> =
-  "log" extends keyof ClientOptions
-    ? ClientOptions["log"] extends Array<Prisma.LogLevel | Prisma.LogDefinition>
-      ? Prisma.GetEvents<ClientOptions["log"]>
-      : never
-    : never;
+export type LogOptions<
+  ClientOptions extends Prisma.PrismaClientOptions,
+> = "log" extends keyof ClientOptions
+  ? ClientOptions["log"] extends Array<
+      Prisma.LogLevel | Prisma.LogDefinition
+    >
+    ? Prisma.GetEvents<ClientOptions["log"]>
+    : never
+  : never;
 
 export interface PrismaClientConstructor {
   /**
@@ -71,12 +79,17 @@ export interface PrismaClientConstructor {
    */
 
   new <
-    Options extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
+    Options extends
+      Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
     LogOpts extends LogOptions<Options> = LogOptions<Options>,
-    OmitOpts extends Prisma.PrismaClientOptions["omit"] = Options extends { omit: infer U }
+    OmitOpts extends
+      Prisma.PrismaClientOptions["omit"] = Options extends {
+      omit: infer U;
+    }
       ? U
       : Prisma.PrismaClientOptions["omit"],
-    ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+    ExtArgs extends
+      runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
   >(
     options: Prisma.Subset<Options, Prisma.PrismaClientOptions>,
   ): PrismaClient<LogOpts, OmitOpts, ExtArgs>;
@@ -98,7 +111,8 @@ export interface PrismaClientConstructor {
 
 export interface PrismaClient<
   in LogOpts extends Prisma.LogLevel = never,
-  in out OmitOpts extends Prisma.PrismaClientOptions["omit"] = undefined,
+  in out OmitOpts extends
+    Prisma.PrismaClientOptions["omit"] = undefined,
   in out ExtArgs extends
     runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
 > {
@@ -106,7 +120,9 @@ export interface PrismaClient<
 
   $on<V extends LogOpts>(
     eventType: V,
-    callback: (event: V extends "query" ? Prisma.QueryEvent : Prisma.LogEvent) => void,
+    callback: (
+      event: V extends "query" ? Prisma.QueryEvent : Prisma.LogEvent,
+    ) => void,
   ): PrismaClient;
 
   /**
@@ -143,7 +159,10 @@ export interface PrismaClient<
    *
    * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
-  $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<number>;
+  $executeRawUnsafe<T = unknown>(
+    query: string,
+    ...values: any[]
+  ): Prisma.PrismaPromise<number>;
 
   /**
    * Performs a prepared raw query and returns the `SELECT` data.
@@ -169,7 +188,10 @@ export interface PrismaClient<
    *
    * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
-  $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<T>;
+  $queryRawUnsafe<T = unknown>(
+    query: string,
+    ...values: any[]
+  ): Prisma.PrismaPromise<T>;
 
   /**
    * Allows the running of a sequence of read/write operations that are guaranteed to either succeed or fail as a whole.
@@ -187,10 +209,14 @@ export interface PrismaClient<
   $transaction<P extends Prisma.PrismaPromise<any>[]>(
     arg: [...P],
     options?: { isolationLevel?: Prisma.TransactionIsolationLevel },
-  ): runtime.Types.Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>;
+  ): runtime.Types.Utils.JsPromise<
+    runtime.Types.Utils.UnwrapTuple<P>
+  >;
 
   $transaction<R>(
-    fn: (prisma: Omit<PrismaClient, runtime.ITXClientDenyList>) => runtime.Types.Utils.JsPromise<R>,
+    fn: (
+      prisma: Omit<PrismaClient, runtime.ITXClientDenyList>,
+    ) => runtime.Types.Utils.JsPromise<R>,
     options?: {
       maxWait?: number;
       timeout?: number;
@@ -248,7 +274,10 @@ export interface PrismaClient<
    * const verifications = await prisma.verification.findMany()
    * ```
    */
-  get verification(): Prisma.VerificationDelegate<ExtArgs, { omit: OmitOpts }>;
+  get verification(): Prisma.VerificationDelegate<
+    ExtArgs,
+    { omit: OmitOpts }
+  >;
 
   /**
    * `prisma.workflow`: Exposes CRUD operations for the **Workflow** model.
@@ -258,9 +287,14 @@ export interface PrismaClient<
    * const workflows = await prisma.workflow.findMany()
    * ```
    */
-  get workflow(): Prisma.WorkflowDelegate<ExtArgs, { omit: OmitOpts }>;
+  get workflow(): Prisma.WorkflowDelegate<
+    ExtArgs,
+    { omit: OmitOpts }
+  >;
 }
 
 export function getPrismaClientClass(): PrismaClientConstructor {
-  return runtime.getPrismaClient(config) as unknown as PrismaClientConstructor;
+  return runtime.getPrismaClient(
+    config,
+  ) as unknown as PrismaClientConstructor;
 }

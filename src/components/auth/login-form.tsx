@@ -8,7 +8,13 @@ import { toast } from "sonner";
 import z from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -70,12 +76,32 @@ export function LoginForm() {
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <div className="grid gap-6">
                 <div className="flex flex-col gap-4">
-                  <Button variant={"outline"} className="w-full" type="button" disabled={isPending}>
-                    <Image alt="Google Logo" src="/google.svg" width={20} height={20} />
+                  <Button
+                    variant={"outline"}
+                    className="w-full"
+                    type="button"
+                    disabled={isPending}
+                  >
+                    <Image
+                      alt="Google Logo"
+                      src="/google.svg"
+                      width={20}
+                      height={20}
+                    />
                     Continue with Google
                   </Button>
-                  <Button variant={"outline"} className="w-full" type="button" disabled={isPending}>
-                    <Image alt="Github Logo" src="/github.svg" width={20} height={20} />
+                  <Button
+                    variant={"outline"}
+                    className="w-full"
+                    type="button"
+                    disabled={isPending}
+                  >
+                    <Image
+                      alt="Github Logo"
+                      src="/github.svg"
+                      width={20}
+                      height={20}
+                    />
                     Continue with Github
                   </Button>
                 </div>
@@ -87,7 +113,11 @@ export function LoginForm() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input type="email" placeholder="user@example.com" {...field} />
+                          <Input
+                            type="email"
+                            placeholder="user@example.com"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -101,19 +131,30 @@ export function LoginForm() {
                       <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="******" {...field} />
+                          <Input
+                            type="password"
+                            placeholder="******"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full" disabled={isPending}>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isPending}
+                  >
                     Login
                   </Button>
                 </div>
                 <div className="text-center text-sm">
                   Don&apos;t have an account?{" "}
-                  <Link href="/signup" className="underrline underline-offset-4">
+                  <Link
+                    href="/signup"
+                    className="underrline underline-offset-4"
+                  >
                     Sign Up
                   </Link>
                 </div>

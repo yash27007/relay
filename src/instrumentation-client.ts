@@ -29,4 +29,5 @@ Sentry.init({
   enabled: false,
 });
 
-export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+export const onRouterTransitionStart =
+  Sentry.captureRouterTransitionStart;

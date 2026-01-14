@@ -17,20 +17,25 @@ interface UpgradeModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export const UpgradeModal = ({ open, onOpenChange }: UpgradeModalProps) => {
+export const UpgradeModal = ({
+  open,
+  onOpenChange,
+}: UpgradeModalProps) => {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Upgrade to Pro</AlertDialogTitle>
           <AlertDialogDescription>
-            You need an active subscription to perform this action. Upgrade to Pro to unlock all
-            features.
+            You need an active subscription to perform this action.
+            Upgrade to Pro to unlock all features.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={() => checkout({ slug: "pro" })}>
+          <AlertDialogAction
+            onClick={() => checkout({ slug: "pro" })}
+          >
             Upgrade Now
           </AlertDialogAction>
         </AlertDialogFooter>

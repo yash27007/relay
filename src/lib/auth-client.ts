@@ -4,4 +4,5 @@ export const authClient = createAuthClient({
   plugins: [polarClient()],
 });
 
-export const { signIn, signUp, useSession, signOut, checkout } = authClient;
+export const { signIn, signUp, useSession, signOut, checkout } =
+  authClient;
