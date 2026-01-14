@@ -1,4 +1,4 @@
-import { AppHeader } from "@/components/layouts/dashboard";
+import { AppHeader } from "@/components/dashboard";
 export default function Rest({ children }: { children: React.ReactNode }) {
   return (
     <>
