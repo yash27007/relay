@@ -18,7 +18,13 @@
  * This pattern uses Next.js route groups to apply different layouts (sidebar navigation vs. focused editor) while keeping a clean URL structure.
  */
 
+import { Editor, EditorError } from "@/editor/components/editor";
+import { EditorHeader } from "@/editor/components/editor-header";
 import { requireAuth } from "@/lib/auth-utils";
+import { HydrateClient } from "@/trpc/server";
+import { prefetchWorkflow } from "@/workflows/server/prefetch";
+import { Suspense } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 
 interface PageProps {
   params: Promise<{
@@ -29,5 +35,17 @@ interface PageProps {
 export default async function ExecutionIdPage({ params }: PageProps) {
   requireAuth();
   const { workflowID } = await params;
-  return <p>Workflow id: {workflowID}</p>;
+  prefetchWorkflow(workflowID)
+  return (
+    <HydrateClient>
+      <ErrorBoundary fallback={<EditorError />}>
+        <Suspense fallback={<EditorError />}>
+          <EditorHeader workflowID={workflowID} />
+          <main className="flex-1">
+            <Editor workflowID={workflowID} />
+          </main>
+        </Suspense>
+      </ErrorBoundary>
+    </HydrateClient>
+  );
 }

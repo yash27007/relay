@@ -71,9 +71,9 @@ export const AppSidebar = () => {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="gap-x-4 h-10 px-4 hover:bg-accent/0"
+              className="gap-x-4 h-10 px-4 hover:bg-transparent active:bg-transparent focus-visible:ring-0"
             >
-              <Link href="/" prefetch>
+              <Link href="/" prefetch className="">
                 <Image
                   src="/logo.svg"
                   alt="Relay"
@@ -147,7 +147,7 @@ export const AppSidebar = () => {
             <SidebarMenuButton
               tooltip="Billing Portal"
               className="gap-x-4 h-10 px-4"
-              onClick={() => {}}
+              onClick={() => { }}
             >
               <CreditCardIcon className="h-4 w-4" />
               <span>Billing Portal</span>
