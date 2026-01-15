@@ -1,0 +1,65 @@
+<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    :root {
+      --primary: oklch(0.5106 0.2301 276.9656);
+      --accent: oklch(0.7686 0.1647 70.0804);
+      --muted: oklch(0.9551 0 0);
+      --text: oklch(0 0 0);
+    }
+  </style>
+
+  <!-- Ground shadow -->
+  <ellipse cx="250" cy="390" rx="180" ry="22" fill="var(--muted)" />
+
+  <!-- Abstract document -->
+  <rect x="160" y="120" width="180" height="220" rx="20" fill="currentColor" opacity="0.05" />
+  <rect x="180" y="150" width="140" height="12" rx="6" fill="var(--muted)" />
+  <rect x="180" y="180" width="110" height="12" rx="6" fill="var(--muted)" />
+  <rect x="180" y="210" width="90" height="12" rx="6" fill="var(--muted)" />
+
+  <!-- Dashed missing outline -->
+  <rect
+    x="160"
+    y="120"
+    width="180"
+    height="220"
+    rx="20"
+    fill="none"
+    stroke="var(--primary)"
+    stroke-width="3"
+    stroke-dasharray="8 8"
+  />
+
+  <!-- Magnifier -->
+  <circle
+    cx="340"
+    cy="300"
+    r="36"
+    fill="none"
+    stroke="var(--accent)"
+    stroke-width="6"
+  />
+  <line
+    x1="365"
+    y1="325"
+    x2="405"
+    y2="365"
+    stroke="var(--accent)"
+    stroke-width="6"
+    stroke-linecap="round"
+  />
+
+  <!-- Floating alert -->
+  <circle cx="130" cy="160" r="28" fill="var(--primary)" />
+  <text
+    x="130"
+    y="170"
+    font-size="36"
+    font-family="DM Sans, sans-serif"
+    text-anchor="middle"
+    fill="white"
+    font-weight="700"
+  >
+    !
+  </text>
+</svg>

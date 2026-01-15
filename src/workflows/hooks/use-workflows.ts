@@ -14,9 +14,7 @@ import { useWorkflowParams } from "./use-workflow-params";
 export const useSuspenseWorkflows = () => {
   const trpc = useTRPC();
   const [params] = useWorkflowParams();
-  return useSuspenseQuery(
-    trpc.workflows.getAllWorkflows.queryOptions(params),
-  );
+  return useSuspenseQuery(trpc.workflows.getAllWorkflows.queryOptions(params));
 };
 
 /**
@@ -32,12 +30,34 @@ export const useCreateWorkflow = () => {
       onSuccess: (data) => {
         toast.success(`Workflow ${data.name} created!`);
         queryClient.invalidateQueries(
-          trpc.workflows.getAllWorkflows.queryOptions({}),
+          trpc.workflows.getAllWorkflows.queryOptions({})
         );
       },
       onError: (error) => {
         toast.error(`Failed to create workflow: ${error.message}`);
       },
-    }),
+    })
+  );
+};
+
+/**
+ * Hook to remove a workflow
+ */
+
+export const useRemoveWorkflow = () => {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    trpc.workflows.remove.mutationOptions({
+      onSuccess: (data) => {
+        toast.success(`Workflow ${data.name} removed!!`);
+        queryClient.invalidateQueries(
+          trpc.workflows.getAllWorkflows.queryOptions({})
+        );
+        queryClient.invalidateQueries(
+          trpc.workflows.getWorkflowbyId.queryFilter({ id: data.id })
+        );
+      },
+    })
   );
 };
