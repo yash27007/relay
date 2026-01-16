@@ -1,12 +1,22 @@
 import type { ComponentProps } from "react";
 
 import { cn } from "@/lib/utils";
+import { type NodeStatus, NodeStatusIndicator } from "./status-indicator";
+import { CheckCircleIcon, LoaderCircleIcon, XCircleIcon } from "lucide-react";
+
+interface BaseNodeProps extends ComponentProps<"div"> {
+  status?: NodeStatus;
+  statusClassName?: string;
+}
 
 export function BaseNode({
   className,
+  status,
+  statusClassName,
+  children,
   ...props
-}: ComponentProps<"div">) {
-  return (
+}: BaseNodeProps) {
+  const nodeContent = (
     <div
       className={cn(
         "bg-card text-card-foreground relative rounded-md border",
@@ -23,8 +33,31 @@ export function BaseNode({
       // biome-ignore lint/a11y/noNoninteractiveTabindex:>
       tabIndex={0}
       {...props}
-    />
+    >
+      {children}
+      {status === "error" && (
+        <XCircleIcon className="absolute right-1.5 bottom-1.5 size-2 text-red-500 fill-red-100" />
+      )}
+      {status === "success" && (
+        <CheckCircleIcon className="absolute right-1.5 bottom-1.5 size-2 text-emerald-500 fill-emerald-100" />
+      )}
+      {status === "loading" && (
+        <LoaderCircleIcon className="absolute right-0.5 bottom-0.5 size-2 text-blue-500 animate-spin" />
+      )}
+    </div>
   );
+
+  if (status && status !== "initial") {
+    return (
+      <div className="relative">
+        <NodeStatusIndicator status={status} className={statusClassName}>
+          {nodeContent}
+        </NodeStatusIndicator>
+      </div>
+    );
+  }
+
+  return nodeContent;
 }
 
 /**

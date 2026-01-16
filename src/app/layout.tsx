@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TRPCReactProvider } from "@/trpc/client";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { Provider } from "jotai";
+
 
 const inter = Inter({
   variable: "--font-inter",
@@ -31,7 +33,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TRPCReactProvider>
-            <NuqsAdapter>{children}</NuqsAdapter>
+            <NuqsAdapter>
+              <Provider>
+                {children}
+              </Provider>
+            </NuqsAdapter>
             <Toaster />
           </TRPCReactProvider>
         </ThemeProvider>

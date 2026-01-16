@@ -12,10 +12,13 @@ import { SaveIcon } from "lucide-react";
 import Link from "next/link";
 import {
   useSuspenseWorkflow,
+  useUpdateWorkflow,
   useUpdateWorkflowName,
 } from "@/features/workflows/hooks/use-workflows";
 import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
+import { useAtomValue } from "jotai";
+import { editorAtom } from "../store/atoms";
 
 export const EditorBreadcrumbs = ({
   workflowID,
@@ -43,9 +46,26 @@ export const EditorSaveButton = ({
 }: {
   workflowID: string;
 }) => {
+
+  const editor = useAtomValue(editorAtom)
+  const saveWorkflow = useUpdateWorkflow()
+  const handleSave = () => {
+    if (!editor) {
+      return
+    }
+    console.log("hello")
+    const nodes = editor.getNodes()
+    const edges = editor.getEdges()
+    saveWorkflow.mutate({
+      id: _workflowID,
+      nodes,
+      edges
+    })
+  }
+
   return (
     <div className="ml-auto">
-      <Button size="sm" onClick={() => {}} disabled={false}>
+      <Button size="sm" onClick={handleSave} disabled={saveWorkflow.isPending}>
         <SaveIcon className="size-4" />
         Save
       </Button>
