@@ -56,7 +56,7 @@ export const AppSidebar = () => {
   const router = useRouter();
   const { hasActiveSubscription, isLoading } =
     useHasActiveSubscription();
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   // Prevent hydration mismatch by only rendering theme-dependent UI after mount
@@ -74,24 +74,31 @@ export const AppSidebar = () => {
               className="gap-x-4 h-10 px-4 hover:bg-transparent active:bg-transparent focus-visible:ring-0"
             >
               <Link href="/" prefetch className="">
-                <Image
-                  src="/logo.svg"
-                  alt="Relay"
-                  width={30}
-                  height={30}
-                  style={{ width: "auto", height: "auto" }}
-                />
-                <span className="font-semibold text-xl flex items-center gap-2 dark:text-white">
-                  Relay
-                  {hasActiveSubscription && (
-                    <Badge
-                      variant={"secondary"}
-                      className="font-semibold tracking-wider"
-                    >
-                      Pro
-                    </Badge>
-                  )}
+                <span className="flex items-center gap-1.5">
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="size-6"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M13 2L4.09 12.11C3.69 12.59 3.89 13.34 4.5 13.5L11 15L11 22L19.91 11.89C20.31 11.41 20.11 10.66 19.5 10.5L13 9L13 2Z"
+                      fill="currentColor"
+                      className="text-primary"
+                    />
+                  </svg>
+                  <span className="font-semibold text-xl dark:text-white font-poppins tracking-tight">
+                    relay
+                  </span>
                 </span>
+                {hasActiveSubscription && (
+                  <Badge
+                    variant={"secondary"}
+                    className="font-semibold tracking-wider"
+                  >
+                    Pro
+                  </Badge>
+                )}
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -147,7 +154,7 @@ export const AppSidebar = () => {
             <SidebarMenuButton
               tooltip="Billing Portal"
               className="gap-x-4 h-10 px-4"
-              onClick={() => {}}
+              onClick={() => { }}
             >
               <CreditCardIcon className="h-4 w-4" />
               <span>Billing Portal</span>
@@ -156,22 +163,22 @@ export const AppSidebar = () => {
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip={
-                mounted && theme === "dark"
+                mounted && resolvedTheme === "dark"
                   ? "Light Mode"
                   : "Dark Mode"
               }
               className="gap-x-4 h-10 px-4"
               onClick={() =>
-                setTheme(theme === "dark" ? "light" : "dark")
+                setTheme(resolvedTheme === "dark" ? "light" : "dark")
               }
             >
-              {mounted && theme === "dark" ? (
+              {mounted && resolvedTheme === "dark" ? (
                 <SunIcon className="h-4 w-4" />
               ) : (
                 <MoonIcon className="h-4 w-4" />
               )}
               <span>
-                {mounted && theme === "dark"
+                {mounted && resolvedTheme === "dark"
                   ? "Light Mode"
                   : "Dark Mode"}
               </span>

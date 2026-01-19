@@ -8,17 +8,23 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { SaveIcon } from "lucide-react";
+import { SaveIcon, LoaderIcon, CheckCircleIcon } from "lucide-react";
 import Link from "next/link";
 import {
   useSuspenseWorkflow,
   useUpdateWorkflow,
   useUpdateWorkflowName,
 } from "@/features/workflows/hooks/use-workflows";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useId } from "react";
 import { Input } from "@/components/ui/input";
-import { useAtomValue } from "jotai";
-import { editorAtom } from "../store/atoms";
+import { useAtom, useAtomValue } from "jotai";
+import {
+  editorAtom,
+  autosaveEnabledAtom,
+  autosaveStatusAtom,
+} from "../store/atoms";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export const EditorBreadcrumbs = ({
   workflowID,
@@ -48,7 +54,7 @@ export const EditorSaveButton = ({
 }) => {
 
   const editor = useAtomValue(editorAtom)
-  const saveWorkflow = useUpdateWorkflow()
+  const saveWorkflow = useUpdateWorkflow({ showToast: true })
   const handleSave = () => {
     if (!editor) {
       return
@@ -64,11 +70,45 @@ export const EditorSaveButton = ({
   }
 
   return (
-    <div className="ml-auto">
-      <Button size="sm" onClick={handleSave} disabled={saveWorkflow.isPending}>
-        <SaveIcon className="size-4" />
-        Save
-      </Button>
+    <Button size="sm" onClick={handleSave} disabled={saveWorkflow.isPending}>
+      <SaveIcon className="size-4" />
+      Save
+    </Button>
+  );
+};
+
+export const AutosaveToggle = () => {
+  const [autosaveEnabled, setAutosaveEnabled] = useAtom(autosaveEnabledAtom);
+  const { isSaving, lastSaved } = useAtomValue(autosaveStatusAtom);
+  const autosaveId = useId();
+
+  return (
+    <div className="flex items-center gap-3">
+      {autosaveEnabled && (
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          {isSaving ? (
+            <>
+              <LoaderIcon className="h-4 w-4 animate-spin" />
+              <span>Saving...</span>
+            </>
+          ) : lastSaved ? (
+            <>
+              <CheckCircleIcon className="h-4 w-4 text-green-500" />
+              <span>Saved</span>
+            </>
+          ) : null}
+        </div>
+      )}
+      <div className="flex items-center gap-2">
+        <Switch
+          id={autosaveId}
+          checked={autosaveEnabled}
+          onCheckedChange={setAutosaveEnabled}
+        />
+        <Label htmlFor={autosaveId} className="text-sm cursor-pointer">
+          Autosave
+        </Label>
+      </div>
     </div>
   );
 };
@@ -156,7 +196,10 @@ export const EditorHeader = ({
       <SidebarTrigger />
       <div className="flex flex-row items-center justify-between gap-x-4 w-full">
         <EditorBreadcrumbs workflowID={workflowID} />
-        <EditorSaveButton workflowID={workflowID} />
+        <div className="ml-auto flex items-center gap-4">
+          <AutosaveToggle />
+          <EditorSaveButton workflowID={workflowID} />
+        </div>
       </div>
     </header>
   );
