@@ -48,6 +48,7 @@ export type CredentialCountAggregateOutputType = {
   id: number
   name: number
   value: number
+  config: number
   type: number
   userId: number
   createdAt: number
@@ -80,6 +81,7 @@ export type CredentialCountAggregateInputType = {
   id?: true
   name?: true
   value?: true
+  config?: true
   type?: true
   userId?: true
   createdAt?: true
@@ -162,7 +164,8 @@ export type CredentialGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inter
 export type CredentialGroupByOutputType = {
   id: string
   name: string
-  value: string
+  value: string | null
+  config: runtime.JsonValue | null
   type: $Enums.CredentialType
   userId: string
   createdAt: Date
@@ -193,7 +196,8 @@ export type CredentialWhereInput = {
   NOT?: Prisma.CredentialWhereInput | Prisma.CredentialWhereInput[]
   id?: Prisma.StringFilter<"Credential"> | string
   name?: Prisma.StringFilter<"Credential"> | string
-  value?: Prisma.StringFilter<"Credential"> | string
+  value?: Prisma.StringNullableFilter<"Credential"> | string | null
+  config?: Prisma.JsonNullableFilter<"Credential">
   type?: Prisma.EnumCredentialTypeFilter<"Credential"> | $Enums.CredentialType
   userId?: Prisma.StringFilter<"Credential"> | string
   createdAt?: Prisma.DateTimeFilter<"Credential"> | Date | string
@@ -204,7 +208,8 @@ export type CredentialWhereInput = {
 export type CredentialOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
-  value?: Prisma.SortOrder
+  value?: Prisma.SortOrderInput | Prisma.SortOrder
+  config?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -218,7 +223,8 @@ export type CredentialWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.CredentialWhereInput[]
   NOT?: Prisma.CredentialWhereInput | Prisma.CredentialWhereInput[]
   name?: Prisma.StringFilter<"Credential"> | string
-  value?: Prisma.StringFilter<"Credential"> | string
+  value?: Prisma.StringNullableFilter<"Credential"> | string | null
+  config?: Prisma.JsonNullableFilter<"Credential">
   type?: Prisma.EnumCredentialTypeFilter<"Credential"> | $Enums.CredentialType
   userId?: Prisma.StringFilter<"Credential"> | string
   createdAt?: Prisma.DateTimeFilter<"Credential"> | Date | string
@@ -229,7 +235,8 @@ export type CredentialWhereUniqueInput = Prisma.AtLeast<{
 export type CredentialOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
-  value?: Prisma.SortOrder
+  value?: Prisma.SortOrderInput | Prisma.SortOrder
+  config?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -245,7 +252,8 @@ export type CredentialScalarWhereWithAggregatesInput = {
   NOT?: Prisma.CredentialScalarWhereWithAggregatesInput | Prisma.CredentialScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Credential"> | string
   name?: Prisma.StringWithAggregatesFilter<"Credential"> | string
-  value?: Prisma.StringWithAggregatesFilter<"Credential"> | string
+  value?: Prisma.StringNullableWithAggregatesFilter<"Credential"> | string | null
+  config?: Prisma.JsonNullableWithAggregatesFilter<"Credential">
   type?: Prisma.EnumCredentialTypeWithAggregatesFilter<"Credential"> | $Enums.CredentialType
   userId?: Prisma.StringWithAggregatesFilter<"Credential"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Credential"> | Date | string
@@ -255,7 +263,8 @@ export type CredentialScalarWhereWithAggregatesInput = {
 export type CredentialCreateInput = {
   id?: string
   name: string
-  value: string
+  value?: string | null
+  config?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   type: $Enums.CredentialType
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -265,7 +274,8 @@ export type CredentialCreateInput = {
 export type CredentialUncheckedCreateInput = {
   id?: string
   name: string
-  value: string
+  value?: string | null
+  config?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   type: $Enums.CredentialType
   userId: string
   createdAt?: Date | string
@@ -275,7 +285,8 @@ export type CredentialUncheckedCreateInput = {
 export type CredentialUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  value?: Prisma.StringFieldUpdateOperationsInput | string
+  value?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  config?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   type?: Prisma.EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -285,7 +296,8 @@ export type CredentialUpdateInput = {
 export type CredentialUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  value?: Prisma.StringFieldUpdateOperationsInput | string
+  value?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  config?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   type?: Prisma.EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -295,7 +307,8 @@ export type CredentialUncheckedUpdateInput = {
 export type CredentialCreateManyInput = {
   id?: string
   name: string
-  value: string
+  value?: string | null
+  config?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   type: $Enums.CredentialType
   userId: string
   createdAt?: Date | string
@@ -305,7 +318,8 @@ export type CredentialCreateManyInput = {
 export type CredentialUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  value?: Prisma.StringFieldUpdateOperationsInput | string
+  value?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  config?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   type?: Prisma.EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -314,7 +328,8 @@ export type CredentialUpdateManyMutationInput = {
 export type CredentialUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  value?: Prisma.StringFieldUpdateOperationsInput | string
+  value?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  config?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   type?: Prisma.EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -335,6 +350,7 @@ export type CredentialCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   value?: Prisma.SortOrder
+  config?: Prisma.SortOrder
   type?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -410,7 +426,8 @@ export type EnumCredentialTypeFieldUpdateOperationsInput = {
 export type CredentialCreateWithoutUserInput = {
   id?: string
   name: string
-  value: string
+  value?: string | null
+  config?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   type: $Enums.CredentialType
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -419,7 +436,8 @@ export type CredentialCreateWithoutUserInput = {
 export type CredentialUncheckedCreateWithoutUserInput = {
   id?: string
   name: string
-  value: string
+  value?: string | null
+  config?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   type: $Enums.CredentialType
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -457,7 +475,8 @@ export type CredentialScalarWhereInput = {
   NOT?: Prisma.CredentialScalarWhereInput | Prisma.CredentialScalarWhereInput[]
   id?: Prisma.StringFilter<"Credential"> | string
   name?: Prisma.StringFilter<"Credential"> | string
-  value?: Prisma.StringFilter<"Credential"> | string
+  value?: Prisma.StringNullableFilter<"Credential"> | string | null
+  config?: Prisma.JsonNullableFilter<"Credential">
   type?: Prisma.EnumCredentialTypeFilter<"Credential"> | $Enums.CredentialType
   userId?: Prisma.StringFilter<"Credential"> | string
   createdAt?: Prisma.DateTimeFilter<"Credential"> | Date | string
@@ -467,7 +486,8 @@ export type CredentialScalarWhereInput = {
 export type CredentialCreateManyUserInput = {
   id?: string
   name: string
-  value: string
+  value?: string | null
+  config?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   type: $Enums.CredentialType
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -476,7 +496,8 @@ export type CredentialCreateManyUserInput = {
 export type CredentialUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  value?: Prisma.StringFieldUpdateOperationsInput | string
+  value?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  config?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   type?: Prisma.EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -485,7 +506,8 @@ export type CredentialUpdateWithoutUserInput = {
 export type CredentialUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  value?: Prisma.StringFieldUpdateOperationsInput | string
+  value?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  config?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   type?: Prisma.EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -494,7 +516,8 @@ export type CredentialUncheckedUpdateWithoutUserInput = {
 export type CredentialUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
-  value?: Prisma.StringFieldUpdateOperationsInput | string
+  value?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  config?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   type?: Prisma.EnumCredentialTypeFieldUpdateOperationsInput | $Enums.CredentialType
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -506,6 +529,7 @@ export type CredentialSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   id?: boolean
   name?: boolean
   value?: boolean
+  config?: boolean
   type?: boolean
   userId?: boolean
   createdAt?: boolean
@@ -517,6 +541,7 @@ export type CredentialSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   id?: boolean
   name?: boolean
   value?: boolean
+  config?: boolean
   type?: boolean
   userId?: boolean
   createdAt?: boolean
@@ -528,6 +553,7 @@ export type CredentialSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   id?: boolean
   name?: boolean
   value?: boolean
+  config?: boolean
   type?: boolean
   userId?: boolean
   createdAt?: boolean
@@ -539,13 +565,14 @@ export type CredentialSelectScalar = {
   id?: boolean
   name?: boolean
   value?: boolean
+  config?: boolean
   type?: boolean
   userId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type CredentialOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "value" | "type" | "userId" | "createdAt" | "updatedAt", ExtArgs["result"]["credential"]>
+export type CredentialOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "value" | "config" | "type" | "userId" | "createdAt" | "updatedAt", ExtArgs["result"]["credential"]>
 export type CredentialInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -564,7 +591,8 @@ export type $CredentialPayload<ExtArgs extends runtime.Types.Extensions.Internal
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     name: string
-    value: string
+    value: string | null
+    config: runtime.JsonValue | null
     type: $Enums.CredentialType
     userId: string
     createdAt: Date
@@ -996,6 +1024,7 @@ export interface CredentialFieldRefs {
   readonly id: Prisma.FieldRef<"Credential", 'String'>
   readonly name: Prisma.FieldRef<"Credential", 'String'>
   readonly value: Prisma.FieldRef<"Credential", 'String'>
+  readonly config: Prisma.FieldRef<"Credential", 'Json'>
   readonly type: Prisma.FieldRef<"Credential", 'CredentialType'>
   readonly userId: Prisma.FieldRef<"Credential", 'String'>
   readonly createdAt: Prisma.FieldRef<"Credential", 'DateTime'>

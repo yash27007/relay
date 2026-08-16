@@ -13,7 +13,11 @@ export const CredentialType = {
   OPENAI: 'OPENAI',
   ANTHROPIC: 'ANTHROPIC',
   GEMINI: 'GEMINI',
-  GROQ: 'GROQ'
+  GROQ: 'GROQ',
+  DEEPSEEK: 'DEEPSEEK',
+  MISTRAL: 'MISTRAL',
+  MOONSHOT: 'MOONSHOT',
+  OLLAMA: 'OLLAMA'
 } as const
 
 export type CredentialType = (typeof CredentialType)[keyof typeof CredentialType]
@@ -29,7 +33,11 @@ export const NodeType = {
   ANTHROPIC: 'ANTHROPIC',
   GEMINI: 'GEMINI',
   GROQ: 'GROQ',
-  AGENT: 'AGENT'
+  AGENT: 'AGENT',
+  DEEPSEEK: 'DEEPSEEK',
+  MISTRAL: 'MISTRAL',
+  MOONSHOT: 'MOONSHOT',
+  OLLAMA: 'OLLAMA'
 } as const
 
 export type NodeType = (typeof NodeType)[keyof typeof NodeType]
