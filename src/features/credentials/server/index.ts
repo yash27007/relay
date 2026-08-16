@@ -1,9 +1,11 @@
+import { TRPCError } from "@trpc/server";
 import { headers } from "next/headers";
 import z from "zod";
 import { auth } from "@/lib/auth";
 import { encrypt } from "@/lib/encryption";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import { AI_PROVIDER_TYPES } from "../lib/ai-providers";
+import { modelFetchers } from "../lib/model-fetchers";
 import { CREDENTIAL_PROVIDERS, isProviderConfigured } from "../lib/providers";
 
 // Fields safe to return to the client — never the encrypted `value`.
@@ -78,6 +80,28 @@ export const credentialsRouter = createTRPCRouter({
           select: CREDENTIAL_SELECT,
           orderBy: { createdAt: "desc" },
         });
+      }),
+
+    listModels: protectedProcedure
+      .input(z.object({ credentialId: z.string() }))
+      .query(async ({ ctx, input }) => {
+        const credential = await ctx.prisma.credential.findFirst({
+          where: { id: input.credentialId, userId: ctx.auth.user.id },
+          select: { type: true, value: true, config: true },
+        });
+
+        if (!credential) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Credential not found" });
+        }
+
+        try {
+          return await modelFetchers[credential.type](credential);
+        } catch (error) {
+          throw new TRPCError({
+            code: "BAD_GATEWAY",
+            message: error instanceof Error ? error.message : "Couldn't load models",
+          });
+        }
       }),
 
     create: protectedProcedure.input(createApiKeyInput).mutation(({ ctx, input }) => {

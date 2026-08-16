@@ -39,6 +39,20 @@ export const useApiKeysByType = (type: AIProviderType) => {
 };
 
 /**
+ * Hook to fetch the available models for a saved credential — used by
+ * every AI node dialog's Model combobox. `credentialId` undefined means
+ * "no credential chosen yet"; the query stays disabled until one is.
+ */
+export const useModelsByCredential = (credentialId: string | undefined) => {
+  const trpc = useTRPC();
+  return useQuery({
+    ...trpc.credentials.apiKeys.listModels.queryOptions({ credentialId: credentialId ?? "" }),
+    enabled: Boolean(credentialId),
+    staleTime: 60 * 60 * 1000,
+  });
+};
+
+/**
  * Hook to save a new API key.
  */
 export const useCreateApiKey = () => {
