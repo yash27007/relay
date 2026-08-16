@@ -4,12 +4,14 @@ import type { NodeTypes } from "@xyflow/react";
 import { HttpRequestNode } from "./executions/components/http-request/http-request-node";
 import { ManualTriggerNode } from "./triggers/components/manual-trigger/manual-trigger";
 import { IfNode } from "./executions/components/if/if-node";
+import { SwitchNode } from "./executions/components/switch/switch-node";
 
 export const nodeComponents: Record<NodeType, NodeTypes[string]> = {
   [NodeType.INITIAL]: InitialNode,
   [NodeType.HTTP_REQUEST]: HttpRequestNode,
   [NodeType.MANUAL_TRIGGER]: ManualTriggerNode,
   [NodeType.IF]: IfNode,
+  [NodeType.SWITCH]: SwitchNode,
 } satisfies NodeTypes;
 
 export type RegisteredNodeType = keyof typeof nodeComponents;

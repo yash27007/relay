@@ -2,7 +2,8 @@
 import {
     GitBranchIcon,
     GlobeIcon,
-    MousePointerIcon
+    MousePointerIcon,
+    SplitIcon
 } from "lucide-react"
 import { createId } from "@paralleldrive/cuid2"
 import type React from "react"
@@ -54,6 +55,12 @@ const executionNodes: NodeTypeOption[] = [
         label: "IF",
         description: "Branch the workflow based on a condition",
         icon: GitBranchIcon
+    },
+    {
+        type: NodeType.SWITCH,
+        label: "Switch",
+        description: "Route the workflow to a matching case",
+        icon: SplitIcon
     },
 ];
 
