@@ -313,10 +313,13 @@ was).
   the right `nodeId`/`nodeName`/`nodeType`/`status` sequence, using a
   mock callback — no real database touched, consistent with every
   existing test in that file.
-- `executionsRouter`'s `list`/`getById` get the same ownership-scoping
-  tests `workflowsRouter` already has (a run belonging to another user is
-  never returned — `findFirstOrThrow`/`where: { userId }` scoped, never a
-  client-supplied id).
+- No tRPC router in this codebase has direct unit tests today (not
+  `workflowsRouter`, not `credentialsRouter`) — there's no test-database
+  harness, and correctness instead comes from every procedure scoping its
+  query by `ctx.auth.user.id` (`findFirstOrThrow`/`where: { userId }`,
+  never a client-supplied id). `executionsRouter` follows that exact same
+  pattern rather than inventing router-level tests this codebase doesn't
+  have anywhere else.
 - No new tests are written purely for static marketing/profile/billing
   markup; existing patterns in this codebase don't unit-test presentational
   components, and the plan won't invent that convention here.
