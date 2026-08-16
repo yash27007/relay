@@ -192,6 +192,19 @@ execution error, the same way an invalid model name or a malformed
 request already does — this spec doesn't add per-model capability
 validation (see Explicitly excludes above).
 
+**Correction (found during the final whole-branch review, not fixed in
+this pass):** `Output.json()` is not purely passive — `ai@6.0.31` calls
+`parseCompleteOutput` on the finished text and throws
+`NoObjectGeneratedError` when it isn't parseable JSON (e.g. a model that
+wraps its answer in markdown fences). That's a plain `Error`, not a
+`NonRetriableError`, so Inngest will retry a deterministically-failing,
+billable generation call. A real fix (catching this specifically and
+converting it to `NonRetriableError`) was scoped out of the final
+review's fix wave as more than a one-line change; it's tracked as a
+follow-up, not resolved here. "Doesn't validate or type it" above should
+be read as "doesn't validate against a *user-supplied schema*" — it does
+still validate that the output parses as JSON at all.
+
 Output contract is unchanged: every executor still returns
 `{ context: { ...context, [variableName]: { text } } }`. JSON mode
 changes what shape of string the model puts *into* `.text` — a
