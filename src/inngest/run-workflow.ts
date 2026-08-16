@@ -38,6 +38,14 @@ export async function runWorkflow({
   // linear execution graph — excluded here so a tool-only node (no flow
   // connection at all) is never treated as a "root" node and auto-executed
   // by the main loop in addition to being callable as a tool.
+  // Note that `hasInbound` below is deliberately computed from ALL
+  // connections, not just `flowConnections`: it means "has ANY inbound
+  // connection, tool or flow", not just "has a flow inbound". So a node
+  // that would otherwise have been a flow root (no flow-connection parent)
+  // but is ALSO the target of a tool connection — e.g. an Agent node with
+  // tools wired into it — is intentionally excluded from being
+  // auto-executed as a root purely because it has that tool-connection
+  // inbound. This is deliberate, not a bug.
   const flowConnections = connections.filter((connection) => !isToolConnection(connection));
   const toolNodeIds = new Set(
     connections.filter(isToolConnection).map((connection) => connection.fromNodeId),

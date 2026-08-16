@@ -32,7 +32,7 @@ import { useForm } from "react-hook-form";
 import { useEffect, useRef } from "react";
 import z from "zod";
 import Link from "next/link";
-import { AI_PROVIDERS } from "@/features/credentials/lib/ai-providers";
+import { AI_PROVIDERS, AI_PROVIDER_TYPES } from "@/features/credentials/lib/ai-providers";
 import { useApiKeysByType } from "@/features/credentials/hooks/use-credentials";
 import type { AgentNodeData } from "./types";
 
@@ -44,7 +44,7 @@ const formSchema = z.object({
       /^[A-Za-z_$][A-Za-z0-9_$]*$/,
       "Variable name must start with a letter or underscore and contain only letters, numbers, and underscores",
     ),
-  provider: z.enum(["OPENAI", "ANTHROPIC", "GEMINI", "GROQ"]),
+  provider: z.enum(AI_PROVIDER_TYPES),
   credentialId: z.string().min(1, "Credential is required"),
   systemPrompt: z.string().optional(),
   userPrompt: z.string().min(1, "User prompt is required"),

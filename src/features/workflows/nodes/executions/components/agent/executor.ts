@@ -77,7 +77,15 @@ export const AgentExecutor: NodeExecutor<AgentNodeData> = async ({
   const variableName = data.variableName;
   const provider = data.provider;
   const credentialId = data.credentialId;
-  const maxSteps = Math.min(Math.max(data.maxSteps ?? 5, 1), 15);
+  // `Number()` + `Number.isFinite` guards against a non-numeric or NaN
+  // stored value (the tRPC `update` mutation's node-data schema is loosely
+  // typed, `z.record(z.string(), z.any())`) — a bare `Math.min(Math.max(...))`
+  // on a non-numeric value produces NaN, which never satisfies
+  // `stepCountIs`'s equality check, so the loop would run unbounded.
+  const rawMaxSteps = Number(data.maxSteps);
+  const maxSteps = Number.isFinite(rawMaxSteps)
+    ? Math.min(Math.max(Math.trunc(rawMaxSteps), 1), 15)
+    : 5;
   const systemPrompt = data.systemPrompt
     ? String(resolveTemplate(data.systemPrompt, context) ?? "")
     : undefined;
@@ -139,23 +147,24 @@ export const AgentExecutor: NodeExecutor<AgentNodeData> = async ({
                 ? (result.context[toolVariableName] ?? { error: "Tool produced no output" })
                 : { error: "Tool produced no output" };
             } catch (error) {
-              // A tool's own config validation failure (e.g. HTTP Request's
-              // "No endpoint configured") is a NonRetriableError the SAME
-              // way it would be if this node ran in the main flow — no
-              // amount of the model retrying with different $fromAI args
-              // will ever fix a static misconfiguration, so let it abort
-              // the run like every other node's validation does, rather
-              // than becoming a {error} result the model would burn
-              // maxSteps retrying against something that can never
-              // succeed. Only a tool's *runtime* failure (a bad argument,
-              // a transient API error) is domain information the model can
-              // usefully react to — that's the case this catch still
-              // handles, and it's the one deliberate departure from every
-              // other node's fail-the-whole-run convention (see the plan's
-              // Global Constraints).
-              if (error instanceof NonRetriableError) {
-                throw error;
-              }
+              // Every tool failure — a runtime error (bad argument,
+              // transient API error) or the tool's own config validation
+              // (e.g. HTTP Request's "No endpoint configured") — becomes
+              // domain information the model can react to, rather than
+              // aborting the run. This is the one deliberate departure
+              // from every other node's fail-the-whole-run convention (see
+              // the plan's Global Constraints).
+              //
+              // A config error can't be distinguished and made to abort
+              // here: `ai@6.0.31`'s tool-call executor catches everything
+              // this function throws and converts it to a `tool-error`
+              // content part before it ever reaches `generateText`'s
+              // caller — a `throw` inside `execute()` cannot escape
+              // `generateText`, confirmed against the installed package's
+              // own source. An earlier revision of this code tried a
+              // `NonRetriableError`-rethrow special case here; it was
+              // dead code (the SDK swallowed it identically either way)
+              // and has been removed.
               return { error: error instanceof Error ? error.message : String(error) };
             }
           },
