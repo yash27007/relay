@@ -10,7 +10,13 @@ function run(
   data: Parameters<typeof SwitchExecutor>[0]["data"],
   context: Record<string, unknown> = {},
 ) {
-  return SwitchExecutor({ nodeId: "switch-1", context, data, step: fakeStep });
+  return SwitchExecutor({
+    nodeId: "switch-1",
+    context,
+    data,
+    step: fakeStep,
+    userId: "test-user",
+  });
 }
 
 describe("SwitchExecutor", () => {

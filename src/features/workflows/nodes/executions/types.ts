@@ -9,6 +9,14 @@ export interface NodeExecutorParams<TData = Record<string, unknown>> {
   nodeId: string;
   context: WorkflowContext;
   step: StepTools;
+  /**
+   * The workflow owner's id. Sourced by runWorkflow from the trusted,
+   * DB-loaded Workflow.userId column — never from node/workflow data,
+   * template-resolved context, or anything else workflow-author-controlled.
+   * Executors that look up a user's saved credential (e.g. an AI provider
+   * API key) must scope that lookup by this id.
+   */
+  userId: string;
   // publish : ADD real time later
 }
 

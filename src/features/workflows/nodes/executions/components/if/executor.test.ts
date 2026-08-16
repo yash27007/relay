@@ -10,7 +10,7 @@ function run(
   data: Parameters<typeof IfExecutor>[0]["data"],
   context: Record<string, unknown> = {},
 ) {
-  return IfExecutor({ nodeId: "if-1", context, data, step: fakeStep });
+  return IfExecutor({ nodeId: "if-1", context, data, step: fakeStep, userId: "test-user" });
 }
 
 describe("IfExecutor", () => {

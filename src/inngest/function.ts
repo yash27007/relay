@@ -31,6 +31,11 @@ export const executeWorkflow = inngest.createFunction(
       initialData: event.data.initialData || {},
       step,
       getExecutor,
+      // The trusted owner id — loaded from the DB above, never from
+      // node/event data. Executors that fetch a saved credential (e.g. an
+      // AI provider API key) scope that lookup by this, not anything
+      // workflow-author-controlled.
+      userId: workflow.userId,
     });
 
     return {

@@ -51,6 +51,7 @@ describe("runWorkflow", () => {
       connections,
       initialData: {},
       step: fakeStep,
+      userId: "test-user",
       getExecutor: () => passthroughExecutor(calls),
     });
 
@@ -84,6 +85,7 @@ describe("runWorkflow", () => {
       connections,
       initialData: {},
       step: fakeStep,
+      userId: "test-user",
       getExecutor: getExecutor as never,
     });
 
@@ -108,6 +110,7 @@ describe("runWorkflow", () => {
       connections,
       initialData: {},
       step: fakeStep,
+      userId: "test-user",
       getExecutor: getExecutor as never,
     });
 
@@ -142,6 +145,7 @@ describe("runWorkflow", () => {
       connections,
       initialData: {},
       step: fakeStep,
+      userId: "test-user",
       getExecutor: getExecutor as never,
     });
 
@@ -159,8 +163,32 @@ describe("runWorkflow", () => {
         connections,
         initialData: {},
         step: fakeStep,
+        userId: "test-user",
         getExecutor: () => passthroughExecutor([]),
       }),
     ).rejects.toThrow("Workflow contains a cycle");
+  });
+
+  test("passes the trusted userId through to every executor call", async () => {
+    const seenUserIds: string[] = [];
+    const nodes = [makeNode("a", "HTTP_REQUEST")];
+    const connections: Connection[] = [];
+
+    const getExecutor = (): NodeExecutor =>
+      async ({ context, userId }) => {
+        seenUserIds.push(userId);
+        return { context };
+      };
+
+    await runWorkflow({
+      nodes,
+      connections,
+      initialData: {},
+      step: fakeStep,
+      userId: "owner-user-id",
+      getExecutor,
+    });
+
+    expect(seenUserIds).toEqual(["owner-user-id"]);
   });
 });

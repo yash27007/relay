@@ -13,6 +13,8 @@ export interface RunWorkflowParams {
   initialData: WorkflowContext;
   step: StepTools;
   getExecutor: (type: NodeType) => NodeExecutor;
+  /** The workflow owner's id — see NodeExecutorParams.userId for the trust contract. */
+  userId: string;
 }
 
 export async function runWorkflow({
@@ -21,6 +23,7 @@ export async function runWorkflow({
   initialData,
   step,
   getExecutor,
+  userId,
 }: RunWorkflowParams): Promise<WorkflowContext> {
   const sortedNodes = topologicalSort(nodes, connections);
 
@@ -47,6 +50,7 @@ export async function runWorkflow({
       nodeId: node.id,
       context,
       step,
+      userId,
     });
     context = result.context;
 
