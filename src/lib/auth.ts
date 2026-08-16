@@ -13,6 +13,12 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   socialProviders.google = {
     clientId: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    // Google only issues a refresh token when access is requested offline,
+    // and only reliably on a consent prompt — without both, the linked
+    // account gets a ~1hr access token and getAccessToken() has nothing to
+    // refresh it with once it expires.
+    accessType: "offline",
+    prompt: "consent",
   };
 }
 if (process.env.SLACK_CLIENT_ID && process.env.SLACK_CLIENT_SECRET) {
