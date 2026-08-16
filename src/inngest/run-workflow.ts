@@ -21,6 +21,22 @@ export interface RunWorkflowParams {
   workflowID: string;
   /** Injected by @inngest/realtime's middleware onto the function handler's context. */
   publish: Realtime.PublishFn;
+  /**
+   * Optional persistence hook — records this run's execution history.
+   * Left undefined by every existing test/call site that doesn't need it
+   * (a no-op then). The real implementation (src/inngest/function.ts)
+   * writes to WorkflowRunStep and is responsible for never throwing —
+   * this file stays free of Prisma/DB concerns entirely, and a
+   * bookkeeping failure must never be allowed to change what a run's
+   * actual outcome was.
+   */
+  recordStep?: (event: {
+    nodeId: string;
+    nodeName: string;
+    nodeType: string;
+    status: "loading" | "success" | "error";
+    error?: string;
+  }) => Promise<void>;
 }
 
 export async function runWorkflow({
@@ -32,6 +48,7 @@ export async function runWorkflow({
   userId,
   workflowID,
   publish,
+  recordStep,
 }: RunWorkflowParams): Promise<WorkflowContext> {
   // Tool connections (an Agent node calling another node as a tool) are
   // metadata for the Agent's own executor to discover, not part of the
@@ -70,6 +87,18 @@ export async function runWorkflow({
   const ch = workflowRunChannel(workflowID);
   const publishStatus = (nodeId: string, status: "loading" | "success" | "error") =>
     publish(ch.status({ nodeId, status }));
+  const recordNodeStatus = (
+    node: Node,
+    status: "loading" | "success" | "error",
+    error?: string,
+  ) =>
+    recordStep?.({
+      nodeId: node.id,
+      nodeName: node.name,
+      nodeType: node.type,
+      status,
+      error,
+    }) ?? Promise.resolve();
 
   let context = initialData;
 
@@ -79,6 +108,7 @@ export async function runWorkflow({
     const executor = getExecutor(node.type as NodeType);
 
     await publishStatus(node.id, "loading");
+    await recordNodeStatus(node, "loading");
     let result: Awaited<ReturnType<NodeExecutor>>;
     try {
       result = await executor({
@@ -98,9 +128,11 @@ export async function runWorkflow({
       // status publish never masks the executor's real error, which is what
       // the run must actually fail with.
       await publishStatus(node.id, "error").catch(() => {});
+      await recordNodeStatus(node, "error", error instanceof Error ? error.message : String(error));
       throw error;
     }
     await publishStatus(node.id, "success");
+    await recordNodeStatus(node, "success");
 
     context = result.context;
 

@@ -59,6 +59,26 @@ function makeFakePublish() {
   return { publish: publish as unknown as Parameters<typeof runWorkflow>[0]["publish"], calls };
 }
 
+function makeFakeRecordStep() {
+  const calls: {
+    nodeId: string;
+    nodeName: string;
+    nodeType: string;
+    status: string;
+    error?: string;
+  }[] = [];
+  const recordStep = async (event: {
+    nodeId: string;
+    nodeName: string;
+    nodeType: string;
+    status: "loading" | "success" | "error";
+    error?: string;
+  }) => {
+    calls.push(event);
+  };
+  return { recordStep: recordStep as Parameters<typeof runWorkflow>[0]["recordStep"], calls };
+}
+
 describe("runWorkflow", () => {
   test("executes a linear chain in order", async () => {
     const calls: string[] = [];
@@ -78,6 +98,81 @@ describe("runWorkflow", () => {
     });
 
     expect(calls).toEqual(["a", "b"]);
+  });
+
+  test("calls recordStep with loading then success for each executed node", async () => {
+    const calls: string[] = [];
+    const nodes = [makeNode("a", "MANUAL_TRIGGER"), makeNode("b", "HTTP_REQUEST")];
+    const connections = [makeConnection("a", "b", "a-source")];
+    const { publish } = makeFakePublish();
+    const { recordStep, calls: stepCalls } = makeFakeRecordStep();
+
+    await runWorkflow({
+      nodes,
+      connections,
+      initialData: {},
+      step: fakeStep,
+      userId: "test-user",
+      workflowID: "workflow-1",
+      publish,
+      recordStep,
+      getExecutor: () => passthroughExecutor(calls),
+    });
+
+    expect(stepCalls).toEqual([
+      { nodeId: "a", nodeName: "MANUAL_TRIGGER", nodeType: "MANUAL_TRIGGER", status: "loading" },
+      { nodeId: "a", nodeName: "MANUAL_TRIGGER", nodeType: "MANUAL_TRIGGER", status: "success" },
+      { nodeId: "b", nodeName: "HTTP_REQUEST", nodeType: "HTTP_REQUEST", status: "loading" },
+      { nodeId: "b", nodeName: "HTTP_REQUEST", nodeType: "HTTP_REQUEST", status: "success" },
+    ]);
+  });
+
+  test("calls recordStep with an error event and still rethrows when an executor throws", async () => {
+    const nodes = [makeNode("a", "MANUAL_TRIGGER")];
+    const connections: ReturnType<typeof makeConnection>[] = [];
+    const { publish } = makeFakePublish();
+    const { recordStep, calls: stepCalls } = makeFakeRecordStep();
+    const failingExecutor: NodeExecutor = async () => {
+      throw new Error("boom");
+    };
+
+    await expect(
+      runWorkflow({
+        nodes,
+        connections,
+        initialData: {},
+        step: fakeStep,
+        userId: "test-user",
+        workflowID: "workflow-1",
+        publish,
+        recordStep,
+        getExecutor: () => failingExecutor,
+      }),
+    ).rejects.toThrow("boom");
+
+    expect(stepCalls).toEqual([
+      { nodeId: "a", nodeName: "MANUAL_TRIGGER", nodeType: "MANUAL_TRIGGER", status: "loading" },
+      { nodeId: "a", nodeName: "MANUAL_TRIGGER", nodeType: "MANUAL_TRIGGER", status: "error", error: "boom" },
+    ]);
+  });
+
+  test("recordStep is optional — omitting it changes nothing about execution", async () => {
+    const calls: string[] = [];
+    const nodes = [makeNode("a", "MANUAL_TRIGGER")];
+    const { publish } = makeFakePublish();
+
+    await runWorkflow({
+      nodes,
+      connections: [],
+      initialData: {},
+      step: fakeStep,
+      userId: "test-user",
+      workflowID: "workflow-1",
+      publish,
+      getExecutor: () => passthroughExecutor(calls),
+    });
+
+    expect(calls).toEqual(["a"]);
   });
 
   test("only executes nodes on the taken branch of an IF node", async () => {
