@@ -29,6 +29,7 @@ import { useSetAtom } from "jotai";
 import { editorAtom } from "../store/atoms";
 import { NodeType } from "@/generated/prisma/enums";
 import { ExecuteWorkflowButton } from "../../nodes/execute-workflow";
+import { useWorkflowExecutionStatus } from "@/features/workflows/hooks/use-workflow-execution-status";
 
 export const EditorLoading = () => {
   return <LoadingView message="Loading Editor." />;
@@ -63,6 +64,25 @@ export const Editor = ({ workflowID }: { workflowID: string }) => {
     edges,
     delay: 1000,
   });
+
+  const statusMessages = useWorkflowExecutionStatus(workflowID);
+  useEffect(() => {
+    if (statusMessages.length === 0) return;
+    setNodes((currentNodes) => {
+      const statusByNodeId = new Map(statusMessages.map((m) => [m.nodeId, m.status]));
+      return currentNodes.map((node) =>
+        statusByNodeId.has(node.id)
+          ? { ...node, data: { ...node.data, status: statusByNodeId.get(node.id) } }
+          : node,
+      );
+    });
+  }, [statusMessages]);
+
+  const handleExecuteStart = useCallback(() => {
+    setNodes((currentNodes) =>
+      currentNodes.map((node) => ({ ...node, data: { ...node.data, status: "initial" } })),
+    );
+  }, []);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) =>
@@ -117,7 +137,7 @@ export const Editor = ({ workflowID }: { workflowID: string }) => {
         </Panel>
         {hasManualTrigger && (
           <Panel position="bottom-center">
-            <ExecuteWorkflowButton workflowID={workflowID} />
+            <ExecuteWorkflowButton workflowID={workflowID} onExecuteStart={handleExecuteStart} />
           </Panel>
         )}
       </ReactFlow>
