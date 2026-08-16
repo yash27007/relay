@@ -75,7 +75,7 @@ export const BaseBranchNode = memo(
               {outputs.map((output, index) => (
                 <div key={output.id} className="contents">
                   <span
-                    className="absolute right-5 text-[10px] font-medium text-muted-foreground pointer-events-none"
+                    className="absolute left-full ml-2 whitespace-nowrap text-[10px] font-medium text-muted-foreground pointer-events-none"
                     style={{
                       top: `${((index + 1) / (outputs.length + 1)) * 100}%`,
                       transform: "translateY(-50%)",
