@@ -509,9 +509,13 @@ describe("fetchOpenAiCompatibleModels", () => {
   });
 
   test("sends the API key as a Bearer token", async () => {
+    // ky constructs a real `Request` (headers merged in) and calls
+    // `fetch(request, options)` — the first argument is that Request, not
+    // a bare URL string, and its headers live on `request.headers`
+    // (a `Headers` instance), not on the second argument.
     let capturedAuth: string | null = null;
-    globalThis.fetch = (async (_url, init) => {
-      capturedAuth = (init?.headers as Record<string, string>)?.Authorization ?? null;
+    globalThis.fetch = (async (request) => {
+      capturedAuth = (request as Request).headers.get("Authorization");
       return new Response(JSON.stringify({ data: [] }), {
         status: 200,
         headers: { "content-type": "application/json" },
@@ -2274,13 +2278,15 @@ import { MockLanguageModelV3 } from "ai/test";
 let currentModel: MockLanguageModelV3;
 let capturedBaseUrl: string | undefined;
 
+const CREDENTIAL_ROWS: Record<string, { value: string | null; config: unknown } | undefined> = {
+  "cred-1": { value: null, config: { baseUrl: "http://localhost:11434" } },
+  "cred-2": { value: null, config: null },
+};
+
 mock.module("@/lib/db", () => ({
   prisma: {
     credential: {
-      findFirst: async ({ where }: { where: { userId: string } }) => {
-        if (where.userId !== "user-1") return null;
-        return { value: null, config: { baseUrl: "http://localhost:11434" } };
-      },
+      findFirst: async ({ where }: { where: { id: string } }) => CREDENTIAL_ROWS[where.id] ?? null,
     },
   },
 }));
@@ -2341,9 +2347,9 @@ describe("OllamaExecutor", () => {
   test("throws NonRetriableError when the credential has no config.baseUrl", async () => {
     await expect(
       OllamaExecutor({
-        data: { variableName: "result", credentialId: "cred-1", userPrompt: "hi" },
+        data: { variableName: "result", credentialId: "cred-2", userPrompt: "hi" },
         nodeId: "node-1",
-        userId: "user-2",
+        userId: "user-1",
         context: {},
         step: fakeStep,
         getExecutor: () => {
@@ -2352,7 +2358,24 @@ describe("OllamaExecutor", () => {
         allNodes: [],
         allConnections: [],
       }),
-    ).rejects.toThrow(/base url|not found/i);
+    ).rejects.toThrow(/base url/i);
+  });
+
+  test("throws NonRetriableError when the credential doesn't exist", async () => {
+    await expect(
+      OllamaExecutor({
+        data: { variableName: "result", credentialId: "cred-missing", userPrompt: "hi" },
+        nodeId: "node-1",
+        userId: "user-1",
+        context: {},
+        step: fakeStep,
+        getExecutor: () => {
+          throw new Error("not used");
+        },
+        allNodes: [],
+        allConnections: [],
+      }),
+    ).rejects.toThrow(/not found/i);
   });
 });
 ```
@@ -2478,7 +2501,7 @@ that part should hold regardless.
 bun test src/features/workflows/nodes/executions/components/ollama/executor.test.ts
 ```
 
-Expected: PASS (2 tests).
+Expected: PASS (3 tests).
 
 - [ ] **Step 6: Ollama node component**
 
