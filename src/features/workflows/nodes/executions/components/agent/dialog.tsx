@@ -34,10 +34,16 @@ import { useForm } from "react-hook-form";
 import { useEffect, useRef } from "react";
 import z from "zod";
 import Link from "next/link";
-import { AI_PROVIDERS, AI_PROVIDER_TYPES } from "@/features/credentials/lib/ai-providers";
+import {
+  AI_PROVIDERS,
+  AI_PROVIDER_TYPES,
+  type AIProviderType,
+} from "@/features/credentials/lib/ai-providers";
 import { useApiKeysByType } from "@/features/credentials/hooks/use-credentials";
 import { ModelCombobox } from "@/features/credentials/components/model-combobox";
 import type { AgentNodeData } from "./types";
+
+const AGENT_SUPPORTED_PROVIDER_TYPES: AIProviderType[] = ["OPENAI", "ANTHROPIC", "GEMINI", "GROQ"];
 
 const formSchema = z.object({
   variableName: z
@@ -127,6 +133,7 @@ export const AgentNodeDialog = ({ open, onOpenChange, onSubmit, defaultValues = 
     if (watchProvider === lastSyncedProviderRef.current) return;
     lastSyncedProviderRef.current = watchProvider;
     form.setValue("credentialId", "");
+    form.setValue("model", "");
   }, [watchProvider, form]);
 
   const { data: credentials, isLoading: isLoadingCredentials } = useApiKeysByType(watchProvider);
@@ -179,7 +186,9 @@ export const AgentNodeDialog = ({ open, onOpenChange, onSubmit, defaultValues = 
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {AI_PROVIDERS.map((provider) => (
+                      {AI_PROVIDERS.filter((provider) =>
+                        AGENT_SUPPORTED_PROVIDER_TYPES.includes(provider.type),
+                      ).map((provider) => (
                         <SelectItem key={provider.type} value={provider.type}>
                           {provider.label}
                         </SelectItem>

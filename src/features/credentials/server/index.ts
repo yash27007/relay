@@ -1,4 +1,5 @@
 import { TRPCError } from "@trpc/server";
+import { HTTPError } from "ky";
 import { headers } from "next/headers";
 import z from "zod";
 import { auth } from "@/lib/auth";
@@ -97,10 +98,13 @@ export const credentialsRouter = createTRPCRouter({
         try {
           return await modelFetchers[credential.type](credential);
         } catch (error) {
-          throw new TRPCError({
-            code: "BAD_GATEWAY",
-            message: error instanceof Error ? error.message : "Couldn't load models",
-          });
+          const message =
+            error instanceof HTTPError
+              ? `Request failed: ${error.response.status} ${error.response.statusText}`
+              : error instanceof Error
+                ? error.message
+                : "Couldn't load models";
+          throw new TRPCError({ code: "BAD_GATEWAY", message });
         }
       }),
 

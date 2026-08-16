@@ -22,7 +22,7 @@ describe("fetchOpenAiCompatibleModels", () => {
           ],
         }),
         { status: 200, headers: { "content-type": "application/json" } },
-      )) as typeof fetch;
+      )) as unknown as typeof fetch;
 
     const models = await fetchOpenAiCompatibleModels("https://api.openai.com/v1", "sk-test");
     expect(models).toEqual([{ id: "gpt-4o" }]);
@@ -43,11 +43,12 @@ describe("fetchOpenAiCompatibleModels", () => {
     }) as typeof fetch;
 
     await fetchOpenAiCompatibleModels("https://api.groq.com/openai/v1", "gsk-test");
-    expect(capturedAuth).toBe("Bearer gsk-test");
+    expect<string | null>(capturedAuth).toBe("Bearer gsk-test");
   });
 
   test("rejects when the response is non-2xx", async () => {
-    globalThis.fetch = (async () => new Response("Unauthorized", { status: 401 })) as typeof fetch;
+    globalThis.fetch = (async () =>
+      new Response("Unauthorized", { status: 401 })) as unknown as typeof fetch;
 
     await expect(
       fetchOpenAiCompatibleModels("https://api.openai.com/v1", "bad-key"),

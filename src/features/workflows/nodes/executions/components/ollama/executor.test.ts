@@ -66,7 +66,7 @@ describe("OllamaExecutor", () => {
       allConnections: [],
     });
 
-    expect(capturedBaseUrl).toBe("http://localhost:11434");
+    expect(capturedBaseUrl).toBe("http://localhost:11434/api");
     expect(result).toEqual({ context: { result: { text: "hi from ollama" } } });
   });
 

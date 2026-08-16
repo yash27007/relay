@@ -49,6 +49,11 @@ export function createAiExecutor({
       : undefined;
     const userPrompt = String(resolveTemplate(data.userPrompt, context) ?? "");
 
+    // Split into two steps (fetch, then generate) rather than one: a
+    // transient generateText failure retries without re-hitting Prisma.
+    // select: {value} only — this step's return value is memoized into
+    // Inngest's persisted run history, so the row's other fields (name,
+    // userId, timestamps) have no reason to be in that log.
     const credential = await step.run(`${slug}-get-credential-${nodeId}`, () =>
       prisma.credential.findFirst({
         where: { id: credentialId, userId, type: providerType },

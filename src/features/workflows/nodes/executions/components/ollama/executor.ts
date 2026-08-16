@@ -1,6 +1,7 @@
 import { generateText, Output } from "ai";
 import { NonRetriableError } from "inngest";
 import { createOllama } from "ollama-ai-provider-v2";
+import { resolveOllamaApiBaseUrl } from "@/features/credentials/lib/ollama-base-url";
 import { prisma } from "@/lib/db";
 import { decrypt } from "@/lib/encryption";
 import type { NodeExecutor } from "../../types";
@@ -67,7 +68,7 @@ export const OllamaExecutor: NodeExecutor<AiNodeData> = async ({
     }
 
     const ollama = createOllama({
-      baseURL: baseUrl,
+      baseURL: resolveOllamaApiBaseUrl(baseUrl),
       headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined,
     });
     const model = ollama(data.model || DEFAULT_MODEL);
