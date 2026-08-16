@@ -1,13 +1,9 @@
 "use client"
 import {
-    BotIcon,
-    GemIcon,
     GitBranchIcon,
     GlobeIcon,
     MousePointerIcon,
-    SparklesIcon,
-    SplitIcon,
-    ZapIcon
+    SplitIcon
 } from "lucide-react"
 import { createId } from "@paralleldrive/cuid2"
 import type React from "react"
@@ -70,25 +66,25 @@ const executionNodes: NodeTypeOption[] = [
         type: NodeType.OPENAI,
         label: "OpenAI",
         description: "Generate text with an OpenAI model",
-        icon: BotIcon
+        icon: "/openai.svg"
     },
     {
         type: NodeType.ANTHROPIC,
         label: "Anthropic",
         description: "Generate text with an Anthropic model",
-        icon: SparklesIcon
+        icon: "/anthropic.svg"
     },
     {
         type: NodeType.GEMINI,
         label: "Gemini",
         description: "Generate text with a Gemini model",
-        icon: GemIcon
+        icon: "/gemini.svg"
     },
     {
         type: NodeType.GROQ,
         label: "Groq",
         description: "Generate text with a Groq-hosted model",
-        icon: ZapIcon
+        icon: "/groq.svg"
     },
 ];
 
@@ -97,6 +93,54 @@ interface NodeSelectorProps {
     onOpenChange: (open: boolean) => void;
     children: React.ReactNode;
 };
+
+// Approximate footprint of a node (including its toolbar/label), used only
+// to decide whether two positions would visually overlap — not an exact
+// measurement.
+const NODE_FOOTPRINT = { width: 180, height: 100 };
+
+function overlaps(
+    a: { x: number; y: number },
+    b: { x: number; y: number },
+): boolean {
+    return (
+        Math.abs(a.x - b.x) < NODE_FOOTPRINT.width &&
+        Math.abs(a.y - b.y) < NODE_FOOTPRINT.height
+    );
+}
+
+/**
+ * Returns `desired` if it doesn't overlap any existing node, otherwise
+ * searches outward in a ring pattern for the nearest position that's clear
+ * of every existing node. Falls back to `desired` if nothing clear is found
+ * within a reasonable search radius.
+ */
+function findClearPosition(
+    desired: { x: number; y: number },
+    existing: { x: number; y: number }[],
+): { x: number; y: number } {
+    if (!existing.some((position) => overlaps(position, desired))) {
+        return desired;
+    }
+
+    const ringStep = 70;
+    for (let ring = 1; ring <= 10; ring++) {
+        const radius = ring * ringStep;
+        const pointsOnRing = ring * 8;
+        for (let i = 0; i < pointsOnRing; i++) {
+            const angle = (i / pointsOnRing) * 2 * Math.PI;
+            const candidate = {
+                x: desired.x + radius * Math.cos(angle),
+                y: desired.y + radius * Math.sin(angle),
+            };
+            if (!existing.some((position) => overlaps(position, candidate))) {
+                return candidate;
+            }
+        }
+    }
+
+    return desired;
+}
 
 export function NodeSelector({
     open,
@@ -125,10 +169,17 @@ export function NodeSelector({
             const centerY = window.innerHeight / 2;
 
             // Converting window position to flow position and positioning it little bit off the center so that they do not overlap
-            const flowPosition = screenToFlowPosition({
+            const desiredPosition = screenToFlowPosition({
                 x: centerX + (Math.random() - 0.5) * 200,
                 y: centerY + (Math.random() - 0.5) * 200
             });
+
+            // Random jitter alone still collides often when several nodes
+            // land near the same spot — nudge outward from any existing
+            // node until the new one has clear space.
+            const flowPosition = hasInitialTrigger
+                ? desiredPosition
+                : findClearPosition(desiredPosition, nodes.map((node) => node.position));
 
             const newNode = {
                 id: createId(),
