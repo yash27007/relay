@@ -1,6 +1,7 @@
 import { NonRetriableError } from "inngest";
-import { NodeExecutor } from "../../../executions/types";
 import ky, { type Options as KyOps } from "ky";
+import { NodeExecutor } from "../../../executions/types";
+import { resolveTemplate } from "../../lib/resolve-template";
 
 type HttpRequestData = {
   variableName?: string;
@@ -23,9 +24,11 @@ export const HttpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
     throw new NonRetriableError("HTTP Request Node: Variable name is required");
   }
 
+  const resolvedEndpoint = String(resolveTemplate(data.endpoint, context) ?? "");
+
   let endpointURL: URL;
   try {
-    endpointURL = new URL(data.endpoint);
+    endpointURL = new URL(resolvedEndpoint);
   } catch {
     throw new NonRetriableError("HTTP Request Node: Invalid URL endpoint");
   }
@@ -33,12 +36,17 @@ export const HttpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
     throw new NonRetriableError("HTTP Request Node: Unsupported Protocol");
   }
 
+  const resolvedBody =
+    data.body !== undefined
+      ? String(resolveTemplate(data.body, context) ?? "")
+      : undefined;
+
   const response = await step.run(`http-request-${nodeId}`, async () => {
     const method = data.method || "GET";
     const endpoint = endpointURL.toString();
     const options: KyOps = { method };
     if (["POST", "PUT", "PATCH"].includes(method)) {
-      options.body = data.body;
+      options.body = resolvedBody;
       options.headers = {
         "Content-Type": "application/json",
       };
@@ -72,5 +80,5 @@ export const HttpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
   });
 
   // TODO Publish success State for maual trigger
-  return response;
+  return { context: response };
 };
