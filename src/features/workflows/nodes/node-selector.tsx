@@ -1,5 +1,6 @@
 "use client"
 import {
+    BotIcon,
     GitBranchIcon,
     GlobeIcon,
     MousePointerIcon,
@@ -61,6 +62,12 @@ const executionNodes: NodeTypeOption[] = [
         label: "Switch",
         description: "Route the workflow to a matching case",
         icon: SplitIcon
+    },
+    {
+        type: NodeType.AGENT,
+        label: "AI Agent",
+        description: "Run a multi-step AI agent that can call tools",
+        icon: BotIcon
     },
     {
         type: NodeType.OPENAI,

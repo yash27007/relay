@@ -9,6 +9,7 @@ import { OpenAiNode } from "./executions/components/openai/node";
 import { AnthropicNode } from "./executions/components/anthropic/node";
 import { GeminiNode } from "./executions/components/gemini/node";
 import { GroqNode } from "./executions/components/groq/node";
+import { AgentNode } from "./executions/components/agent/node";
 
 export const nodeComponents: Record<NodeType, NodeTypes[string]> = {
   [NodeType.INITIAL]: InitialNode,
@@ -20,6 +21,7 @@ export const nodeComponents: Record<NodeType, NodeTypes[string]> = {
   [NodeType.ANTHROPIC]: AnthropicNode,
   [NodeType.GEMINI]: GeminiNode,
   [NodeType.GROQ]: GroqNode,
+  [NodeType.AGENT]: AgentNode,
 } satisfies NodeTypes;
 
 export type RegisteredNodeType = keyof typeof nodeComponents;

@@ -8,6 +8,7 @@ import { OpenAiExecutor } from "../components/openai/executor";
 import { AnthropicExecutor } from "../components/anthropic/executor";
 import { GeminiExecutor } from "../components/gemini/executor";
 import { GroqExecutor } from "../components/groq/executor";
+import { AgentExecutor } from "../components/agent/executor";
 
 export const executorRegistry: Record<NodeType, NodeExecutor> = {
   [NodeType.MANUAL_TRIGGER]: manualTriggerExecutor,
@@ -19,6 +20,7 @@ export const executorRegistry: Record<NodeType, NodeExecutor> = {
   [NodeType.ANTHROPIC]: AnthropicExecutor,
   [NodeType.GEMINI]: GeminiExecutor,
   [NodeType.GROQ]: GroqExecutor,
+  [NodeType.AGENT]: AgentExecutor,
 };
 
 export const getExecutor = (type: NodeType): NodeExecutor => {
