@@ -123,7 +123,11 @@ function findClearPosition(
         return desired;
     }
 
-    const ringStep = 70;
+    // Escaping a coincident node needs at least NODE_FOOTPRINT.height (a
+    // straight vertical step) or .width (straight horizontal) — a smaller
+    // ring 1 radius would always land inside the overlap it's trying to
+    // clear, wasting the first pass on guaranteed misses.
+    const ringStep = Math.min(NODE_FOOTPRINT.width, NODE_FOOTPRINT.height);
     for (let ring = 1; ring <= 10; ring++) {
         const radius = ring * ringStep;
         const pointsOnRing = ring * 8;
@@ -236,6 +240,8 @@ export function NodeSelector({
                                         <Image
                                             src={Icon}
                                             alt={nodeType.label}
+                                            width={20}
+                                            height={20}
                                             className="size-5 object-contain rounded-sm"
                                         />
 
@@ -276,6 +282,8 @@ export function NodeSelector({
                                         <Image
                                             src={Icon}
                                             alt={nodeType.label}
+                                            width={20}
+                                            height={20}
                                             className="size-5 object-contain rounded-sm"
                                         />
 
