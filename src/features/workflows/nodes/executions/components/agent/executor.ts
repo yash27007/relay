@@ -3,7 +3,7 @@ import { createAnthropic } from "@ai-sdk/anthropic";
 import { createGroq } from "@ai-sdk/groq";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { generateText, stepCountIs, tool, type LanguageModel } from "ai";
+import { generateText, Output, stepCountIs, tool, type LanguageModel } from "ai";
 import { prisma } from "@/lib/db";
 import { decrypt } from "@/lib/encryption";
 import type { AIProviderType } from "@/features/credentials/lib/ai-providers";
@@ -13,16 +13,32 @@ import { buildToolInputSchema } from "./tool-schema";
 import { discoverToolNodes } from "./discover-tools";
 import type { AgentNodeData } from "./types";
 
-function createModel(provider: AIProviderType, apiKey: string): LanguageModel {
+// Only OPENAI/ANTHROPIC/GEMINI/GROQ have a real case in createModel's
+// switch below — the other four AI_PROVIDERS members are valid choices
+// in the Agent dialog's provider dropdown (it reuses AI_PROVIDERS
+// wholesale) but hit the `default` branch's NonRetriableError today.
+// Extending createModel to the other four is new scope, not this task.
+const DEFAULT_MODEL_BY_PROVIDER: Record<AIProviderType, string> = {
+  OPENAI: "gpt-4o-mini",
+  ANTHROPIC: "claude-sonnet-5",
+  GEMINI: "gemini-2.0-flash",
+  GROQ: "llama-3.3-70b-versatile",
+  DEEPSEEK: "deepseek-chat",
+  MISTRAL: "mistral-large-latest",
+  MOONSHOT: "kimi-k2-0711-preview",
+  OLLAMA: "llama3.2",
+};
+
+function createModel(provider: AIProviderType, apiKey: string, model: string): LanguageModel {
   switch (provider) {
     case "OPENAI":
-      return createOpenAI({ apiKey })("gpt-4o-mini");
+      return createOpenAI({ apiKey })(model);
     case "ANTHROPIC":
-      return createAnthropic({ apiKey })("claude-sonnet-5");
+      return createAnthropic({ apiKey })(model);
     case "GEMINI":
-      return createGoogleGenerativeAI({ apiKey })("gemini-2.0-flash");
+      return createGoogleGenerativeAI({ apiKey })(model);
     case "GROQ":
-      return createGroq({ apiKey })("llama-3.3-70b-versatile");
+      return createGroq({ apiKey })(model);
     default:
       // AIProviderType is the CredentialType Prisma enum — every member is
       // handled explicitly above. A default that silently fell through to
@@ -103,16 +119,19 @@ export const AgentExecutor: NodeExecutor<AgentNodeData> = async ({
   if (!credential) {
     throw new NonRetriableError("Agent node: Credential not found");
   }
+  if (!credential.value) {
+    throw new NonRetriableError("Agent node: Credential has no stored key");
+  }
 
   const text = await step.run(`agent-run-${nodeId}`, async () => {
     let apiKey: string;
     try {
-      apiKey = decrypt(credential.value);
+      apiKey = decrypt(credential.value as string);
     } catch {
       throw new NonRetriableError("Agent node: Credential could not be decrypted");
     }
 
-    const model = createModel(provider, apiKey);
+    const model = createModel(provider, apiKey, data.model || DEFAULT_MODEL_BY_PROVIDER[provider]);
 
     const tools = Object.fromEntries(
       toolNodes.map(({ node: toolNode, aiTool }) => [
@@ -151,20 +170,11 @@ export const AgentExecutor: NodeExecutor<AgentNodeData> = async ({
               // transient API error) or the tool's own config validation
               // (e.g. HTTP Request's "No endpoint configured") — becomes
               // domain information the model can react to, rather than
-              // aborting the run. This is the one deliberate departure
-              // from every other node's fail-the-whole-run convention (see
-              // the plan's Global Constraints).
-              //
-              // A config error can't be distinguished and made to abort
-              // here: `ai@6.0.31`'s tool-call executor catches everything
-              // this function throws and converts it to a `tool-error`
-              // content part before it ever reaches `generateText`'s
-              // caller — a `throw` inside `execute()` cannot escape
-              // `generateText`, confirmed against the installed package's
-              // own source. An earlier revision of this code tried a
-              // `NonRetriableError`-rethrow special case here; it was
-              // dead code (the SDK swallowed it identically either way)
-              // and has been removed.
+              // aborting the run. `ai@6.0.31`'s tool-call executor catches
+              // everything this function throws and converts it to a
+              // `tool-error` content part before it ever reaches
+              // `generateText`'s caller — a `throw` inside `execute()`
+              // cannot escape `generateText`.
               return { error: error instanceof Error ? error.message : String(error) };
             }
           },
@@ -178,6 +188,9 @@ export const AgentExecutor: NodeExecutor<AgentNodeData> = async ({
       prompt: userPrompt,
       tools,
       stopWhen: stepCountIs(maxSteps),
+      temperature: data.temperature,
+      maxOutputTokens: data.maxTokens,
+      output: data.jsonMode ? Output.json() : undefined,
     });
     return result.text;
   });

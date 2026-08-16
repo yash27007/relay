@@ -222,3 +222,33 @@ describe("AgentExecutor tool-error handling", () => {
     });
   });
 });
+
+describe("AgentExecutor generation parameters", () => {
+  test("passes temperature, maxOutputTokens, and a configured model through to generateText", async () => {
+    let capturedCallOptions: Record<string, unknown> | undefined;
+    currentModel = new MockLanguageModelV3({
+      doGenerate: async (options) => {
+        capturedCallOptions = options as unknown as Record<string, unknown>;
+        return textResult("done") as never;
+      },
+    });
+
+    const agentNode = makeAgentNode({ model: "gpt-4o", temperature: 0.3, maxTokens: 128 });
+
+    await AgentExecutor({
+      data: agentNode.data as AgentNodeData,
+      nodeId: "agent-1",
+      userId: "test-user",
+      context: {},
+      step: fakeStep,
+      getExecutor: () => {
+        throw new Error("not used");
+      },
+      allNodes: [agentNode],
+      allConnections: [],
+    });
+
+    expect(capturedCallOptions?.temperature).toBe(0.3);
+    expect(capturedCallOptions?.maxOutputTokens).toBe(128);
+  });
+});
