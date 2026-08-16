@@ -14,4 +14,8 @@ export const AI_PROVIDERS: { type: AIProviderType; label: string; icon: string }
   { type: "ANTHROPIC", label: "Anthropic", icon: "/anthropic.svg" },
   { type: "GEMINI", label: "Gemini", icon: "/gemini.svg" },
   { type: "GROQ", label: "Groq", icon: "/groq.svg" },
+  { type: "DEEPSEEK", label: "DeepSeek", icon: "/deepseek.svg" },
+  { type: "MISTRAL", label: "Mistral", icon: "/mistral.svg" },
+  { type: "MOONSHOT", label: "Moonshot AI (Kimi)", icon: "/moonshot.svg" },
+  { type: "OLLAMA", label: "Ollama", icon: "/ollama.svg" },
 ];
