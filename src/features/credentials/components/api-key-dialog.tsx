@@ -36,11 +36,22 @@ import z from "zod";
 import { AI_PROVIDERS, AI_PROVIDER_TYPES } from "../lib/ai-providers";
 import { useCreateApiKey } from "../hooks/use-credentials";
 
-const formSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  type: z.enum(AI_PROVIDER_TYPES),
-  value: z.string().min(1, "API key is required"),
-});
+const formSchema = z
+  .object({
+    name: z.string().min(1, "Name is required"),
+    type: z.enum(AI_PROVIDER_TYPES),
+    value: z.string().optional(),
+    baseUrl: z.string().optional(),
+  })
+  .superRefine((input, ctx) => {
+    if (input.type === "OLLAMA") {
+      if (!input.baseUrl) {
+        ctx.addIssue({ code: "custom", path: ["baseUrl"], message: "Base URL is required" });
+      }
+    } else if (!input.value) {
+      ctx.addIssue({ code: "custom", path: ["value"], message: "API key is required" });
+    }
+  });
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -50,16 +61,27 @@ export const ApiKeyDialog = ({ children }: { children?: ReactNode }) => {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { name: "", type: "OPENAI", value: "" },
+    defaultValues: { name: "", type: "OPENAI", value: "", baseUrl: "" },
   });
 
+  const watchType = form.watch("type");
+  const isOllama = watchType === "OLLAMA";
+
   const handleSubmit = (values: FormValues) => {
-    createApiKey.mutate(values, {
-      onSuccess: () => {
-        form.reset({ name: "", type: "OPENAI", value: "" });
-        setOpen(false);
+    createApiKey.mutate(
+      {
+        name: values.name,
+        type: values.type,
+        value: values.value || undefined,
+        config: values.baseUrl ? { baseUrl: values.baseUrl } : undefined,
       },
-    });
+      {
+        onSuccess: () => {
+          form.reset({ name: "", type: "OPENAI", value: "", baseUrl: "" });
+          setOpen(false);
+        },
+      },
+    );
   };
 
   return (
@@ -122,22 +144,57 @@ export const ApiKeyDialog = ({ children }: { children?: ReactNode }) => {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="value"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>API Key</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="password" placeholder="sk-..." />
-                  </FormControl>
-                  <FormDescription>
-                    Encrypted before it's stored. Never shown again after saving.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {isOllama ? (
+              <>
+                <FormField
+                  control={form.control}
+                  name="baseUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Base URL</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="http://localhost:11434" />
+                      </FormControl>
+                      <FormDescription>
+                        The address of your Ollama server. Only reachable Ollama instances —
+                        localhost only works if Relay itself is running on the same machine.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="value"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>API Key (Optional)</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="password" placeholder="Only needed for Ollama Cloud" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            ) : (
+              <FormField
+                control={form.control}
+                name="value"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>API Key</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="password" placeholder="sk-..." />
+                    </FormControl>
+                    <FormDescription>
+                      Encrypted before it's stored. Never shown again after saving.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <DialogFooter className="mt-4">
               <Button className="w-full" type="submit" disabled={createApiKey.isPending}>
                 Save

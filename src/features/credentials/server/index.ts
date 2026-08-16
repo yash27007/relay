@@ -14,6 +14,27 @@ const CREDENTIAL_SELECT = {
   createdAt: true,
 } as const;
 
+const createApiKeyInput = z
+  .object({
+    name: z.string().min(1, "Name is required"),
+    type: z.enum(AI_PROVIDER_TYPES),
+    value: z.string().optional(),
+    config: z.object({ baseUrl: z.string().min(1, "Base URL is required") }).optional(),
+  })
+  .superRefine((input, ctx) => {
+    if (input.type === "OLLAMA") {
+      if (!input.config?.baseUrl) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["config", "baseUrl"],
+          message: "Base URL is required",
+        });
+      }
+    } else if (!input.value) {
+      ctx.addIssue({ code: "custom", path: ["value"], message: "API key is required" });
+    }
+  });
+
 export const credentialsRouter = createTRPCRouter({
   list: protectedProcedure.query(async () => {
     const linkedAccounts = await auth.api.listUserAccounts({
@@ -59,25 +80,18 @@ export const credentialsRouter = createTRPCRouter({
         });
       }),
 
-    create: protectedProcedure
-      .input(
-        z.object({
-          name: z.string().min(1, "Name is required"),
-          type: z.enum(AI_PROVIDER_TYPES),
-          value: z.string().min(1, "API key is required"),
-        }),
-      )
-      .mutation(({ ctx, input }) => {
-        return ctx.prisma.credential.create({
-          data: {
-            name: input.name,
-            type: input.type,
-            value: encrypt(input.value),
-            userId: ctx.auth.user.id,
-          },
-          select: CREDENTIAL_SELECT,
-        });
-      }),
+    create: protectedProcedure.input(createApiKeyInput).mutation(({ ctx, input }) => {
+      return ctx.prisma.credential.create({
+        data: {
+          name: input.name,
+          type: input.type,
+          value: input.value ? encrypt(input.value) : null,
+          config: input.config ?? undefined,
+          userId: ctx.auth.user.id,
+        },
+        select: CREDENTIAL_SELECT,
+      });
+    }),
 
     remove: protectedProcedure
       .input(z.object({ id: z.string() }))
