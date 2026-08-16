@@ -541,13 +541,23 @@ to:
     outputsByNode.set(connection.fromNodeId, list);
   }
 
-  const hasInbound = new Set(flowConnections.map((connection) => connection.toNodeId));
+  // `hasInbound` intentionally checks ALL connections, not just
+  // `flowConnections` — a node that's the *target* of a tool connection
+  // (e.g. an Agent with no flow inbound at all, only a tool node feeding
+  // into it) already has "some" incoming connection and must not be
+  // treated as an unconnected root either. `toolNodeIds` alone only
+  // excludes the tool's *source*; it says nothing about the tool
+  // connection's *target*. Using `flowConnections` here would leave that
+  // target node wrongly seeded as reachable.
+  const hasInbound = new Set(connections.map((connection) => connection.toNodeId));
   const reachable = new Set(
     sortedNodes
       .filter((node) => !hasInbound.has(node.id) && !toolNodeIds.has(node.id))
       .map((node) => node.id),
   );
 ```
+
+**Post-implementation correction (verified during Task 4's review):** the snippet above originally read `flowConnections.map(...)` for `hasInbound`, which fails the plan's own Step 1 Test 1 — a node with *only* a tool connection pointing into it (no flow connection at all) would slip through and wrongly get seeded as reachable, since `flowConnections` excludes tool connections entirely and `toolNodeIds` only tracks the tool's source, not its target. Fixed to build `hasInbound` from unfiltered `connections`, verified against both of Step 1's tests plus the fan-in edge case (a node with a real flow inbound that's *also* separately wired as a tool for another node — excluded from the seed via its genuine flow inbound either way, no double-counting, and it still becomes reachable normally once the flow graph reaches it).
 
 - [ ] **Step 4: Run tests to verify they pass**
 
