@@ -9,6 +9,9 @@ import { AnthropicExecutor } from "../components/anthropic/executor";
 import { GeminiExecutor } from "../components/gemini/executor";
 import { GroqExecutor } from "../components/groq/executor";
 import { AgentExecutor } from "../components/agent/executor";
+import { DeepseekExecutor } from "../components/deepseek/executor";
+import { MistralExecutor } from "../components/mistral/executor";
+import { MoonshotExecutor } from "../components/moonshot/executor";
 
 export const executorRegistry: Record<NodeType, NodeExecutor> = {
   [NodeType.MANUAL_TRIGGER]: manualTriggerExecutor,
@@ -21,6 +24,9 @@ export const executorRegistry: Record<NodeType, NodeExecutor> = {
   [NodeType.GEMINI]: GeminiExecutor,
   [NodeType.GROQ]: GroqExecutor,
   [NodeType.AGENT]: AgentExecutor,
+  [NodeType.DEEPSEEK]: DeepseekExecutor,
+  [NodeType.MISTRAL]: MistralExecutor,
+  [NodeType.MOONSHOT]: MoonshotExecutor,
 };
 
 export const getExecutor = (type: NodeType): NodeExecutor => {

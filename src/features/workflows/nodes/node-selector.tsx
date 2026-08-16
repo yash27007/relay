@@ -93,6 +93,24 @@ const executionNodes: NodeTypeOption[] = [
         description: "Generate text with a Groq-hosted model",
         icon: "/groq.svg"
     },
+    {
+        type: NodeType.DEEPSEEK,
+        label: "DeepSeek",
+        description: "Generate text with a DeepSeek model",
+        icon: "/deepseek.svg"
+    },
+    {
+        type: NodeType.MISTRAL,
+        label: "Mistral",
+        description: "Generate text with a Mistral model",
+        icon: "/mistral.svg"
+    },
+    {
+        type: NodeType.MOONSHOT,
+        label: "Moonshot AI (Kimi)",
+        description: "Generate text with a Moonshot/Kimi model",
+        icon: "/moonshot.svg"
+    },
 ];
 
 interface NodeSelectorProps {

@@ -24,8 +24,11 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.12",
+    "@ai-sdk/deepseek": "2.0.56",
     "@ai-sdk/google": "^3.0.6",
     "@ai-sdk/groq": "3.0.60",
+    "@ai-sdk/mistral": "3.0.58",
+    "@ai-sdk/moonshotai": "2.0.46",
     "@ai-sdk/openai": "^3.0.9",
     "@hookform/resolvers": "^5.2.2",
     "@inngest/realtime": "^0.4.7",

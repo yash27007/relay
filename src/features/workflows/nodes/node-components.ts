@@ -10,6 +10,9 @@ import { AnthropicNode } from "./executions/components/anthropic/node";
 import { GeminiNode } from "./executions/components/gemini/node";
 import { GroqNode } from "./executions/components/groq/node";
 import { AgentNode } from "./executions/components/agent/node";
+import { DeepseekNode } from "./executions/components/deepseek/node";
+import { MistralNode } from "./executions/components/mistral/node";
+import { MoonshotNode } from "./executions/components/moonshot/node";
 
 export const nodeComponents: Record<NodeType, NodeTypes[string]> = {
   [NodeType.INITIAL]: InitialNode,
@@ -22,6 +25,9 @@ export const nodeComponents: Record<NodeType, NodeTypes[string]> = {
   [NodeType.GEMINI]: GeminiNode,
   [NodeType.GROQ]: GroqNode,
   [NodeType.AGENT]: AgentNode,
+  [NodeType.DEEPSEEK]: DeepseekNode,
+  [NodeType.MISTRAL]: MistralNode,
+  [NodeType.MOONSHOT]: MoonshotNode,
 } satisfies NodeTypes;
 
 export type RegisteredNodeType = keyof typeof nodeComponents;
