@@ -30,7 +30,7 @@ interface ModelComboboxProps {
 export function ModelCombobox({ credentialId, value, onChange }: ModelComboboxProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const { data: models, isLoading, isError, refetch } = useModelsByCredential(credentialId);
+  const { data: models, isLoading, isError, error, refetch } = useModelsByCredential(credentialId);
 
   const placeholder = !credentialId
     ? "Select a credential first"
@@ -69,7 +69,7 @@ export function ModelCombobox({ credentialId, value, onChange }: ModelComboboxPr
           <CommandList>
             {isError && (
               <div className="text-muted-foreground p-2 text-xs">
-                Couldn&apos;t load models.{" "}
+                {error?.message || "Couldn't load models."}{" "}
                 <button type="button" className="underline" onClick={() => refetch()}>
                   Retry
                 </button>

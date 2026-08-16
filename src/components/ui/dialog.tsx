@@ -94,13 +94,7 @@ function DialogHeader({
     <div
       data-slot="dialog-header"
       className={cn(
-        // Sticky within DialogContent's own scroll area (see DialogContent's
-        // max-h-[85vh] overflow-y-auto) — the negative x/top margin plus
-        // matching padding bleeds the header out to DialogContent's own
-        // edges and back, so its solid background fully covers content
-        // scrolling underneath it instead of leaving the parent's padding
-        // as a gap the scrolled content peeks through.
-        "sticky top-0 z-10 -mx-6 -mt-6 flex flex-col gap-2 bg-background px-6 pt-6 pb-4 text-center sm:text-left",
+        "flex flex-col gap-2 text-center sm:text-left",
         className,
       )}
       {...props}
@@ -116,9 +110,7 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        // Same sticky-edge-bleed treatment as DialogHeader, pinned to the
-        // bottom of DialogContent's scroll area instead of the top.
-        "sticky bottom-0 z-10 -mx-6 -mb-6 flex flex-col-reverse gap-2 bg-background px-6 pt-4 pb-6 sm:flex-row sm:justify-end",
+        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
         className,
       )}
       {...props}

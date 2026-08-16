@@ -49,6 +49,14 @@ export const useModelsByCredential = (credentialId: string | undefined) => {
     ...trpc.credentials.apiKeys.listModels.queryOptions({ credentialId: credentialId ?? "" }),
     enabled: Boolean(credentialId),
     staleTime: 60 * 60 * 1000,
+    // The default (retry: 3, exponential backoff) means a genuine failure
+    // — e.g. a self-hosted Ollama instance that's unreachable — sits on
+    // "Loading models..." for several seconds before the combobox ever
+    // shows an error, and reopening the dialog before that resolves just
+    // restarts the retry cycle. A model-list fetch failing isn't the kind
+    // of transient blip worth retrying blindly; fail fast and let the
+    // explicit "Retry" button (see ModelCombobox) drive re-attempts.
+    retry: false,
   });
 };
 
