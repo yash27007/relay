@@ -65,6 +65,11 @@ export type Verification = Prisma.VerificationModel
  */
 export type Workflow = Prisma.WorkflowModel
 /**
+ * Model Credential
+ * 
+ */
+export type Credential = Prisma.CredentialModel
+/**
  * Model Node
  * 
  */

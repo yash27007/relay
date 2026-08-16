@@ -18,6 +18,7 @@ model User {
   sessions      Session[]
   accounts      Account[]
   workflows     Workflow[]
+  credentials   Credential[]
 
   @@unique([email])
   @@map("user")
@@ -83,12 +84,40 @@ model Workflow {
   connections Connection[]
 }
 
+enum CredentialType {
+  OPENAI
+  ANTHROPIC
+  GEMINI
+  GROQ
+}
+
+// User-supplied API keys (encrypted at rest), distinct from the OAuth-linked
+// Account model above. Used by node executors that need a plain API key
+// rather than an OAuth token (e.g. AI provider nodes).
+model Credential {
+  id        String         @id @default(cuid())
+  name      String
+  value     String
+  type      CredentialType
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([userId, type])
+  @@map("credential")
+}
+
 enum NodeType {
   INITIAL
   MANUAL_TRIGGER
   HTTP_REQUEST
   IF
   SWITCH
+  OPENAI
+  ANTHROPIC
+  GEMINI
+  GROQ
 }
 
 model Node {

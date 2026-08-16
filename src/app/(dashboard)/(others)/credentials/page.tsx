@@ -7,10 +7,17 @@ import {
   CredentialsList,
   CredentialsLoading,
 } from "@/features/credentials/components/credentials-list";
+import {
+  ApiKeysError,
+  ApiKeysList,
+  ApiKeysLoading,
+} from "@/features/credentials/components/api-keys-list";
+import { Separator } from "@/components/ui/separator";
 
 export default async function CredentialsPage() {
   await requireAuth();
   prefetch(trpc.credentials.list.queryOptions());
+  prefetch(trpc.credentials.apiKeys.list.queryOptions());
 
   return (
     <div className="p-6">
@@ -24,6 +31,20 @@ export default async function CredentialsPage() {
         <ErrorBoundary fallback={<CredentialsError />}>
           <Suspense fallback={<CredentialsLoading />}>
             <CredentialsList />
+          </Suspense>
+        </ErrorBoundary>
+
+        <Separator className="my-8" />
+
+        <div className="mb-4">
+          <h2 className="font-semibold">API Keys</h2>
+          <p className="text-muted-foreground text-sm">
+            Keys for AI provider nodes (OpenAI, Anthropic, Gemini, Groq).
+          </p>
+        </div>
+        <ErrorBoundary fallback={<ApiKeysError />}>
+          <Suspense fallback={<ApiKeysLoading />}>
+            <ApiKeysList />
           </Suspense>
         </ErrorBoundary>
       </HydrateClient>
