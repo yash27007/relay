@@ -45,7 +45,32 @@ highlights (visual workflow builder, AI provider nodes, integrations),
 CTAs to `/signup` and `/login`. No backend — static content, split into
 small components under `src/features/marketing/components/` (hero,
 features, footer) so `page.tsx` stays a thin composition, matching this
-codebase's file-size norms.
+codebase's file-size norms. Visual direction goes through the
+frontend-design skill (this is the one page whose whole job is a strong
+first impression) but stays on the app's existing design tokens —
+`globals.css`'s theme colors/radius, `Inter`/`Poppins` fonts already
+loaded in `src/app/layout.tsx` — rather than introducing a separate
+marketing palette.
+
+**Hero animation.** The hero's centerpiece is a looping SVG diagram of a
+workflow actually executing: three nodes left-to-right — Trigger
+(`MousePointerIcon`, the exact icon `node-selector.tsx` uses for Manual
+Trigger) → HTTP Request (`GlobeIcon`, ditto) → an AI provider node
+(`/gemini.svg` or `/anthropic.svg`, the real logos already in `public/`,
+rendered through the same squircle badge `NodeIcon` uses) — connected by
+two paths. A pulse travels along each path in sequence (SVG
+`stroke-dasharray`/`stroke-dashoffset` animation, not a JS animation
+library — no new dependency), and each node highlights as the pulse
+reaches it, echoing the same loading→success visual language the real
+editor already uses for live node execution
+(`workflowRunChannel`'s `status` topic). Pure CSS/SVG, respects
+`prefers-reduced-motion` (freezes on the "all three nodes succeeded"
+frame rather than looping), client component since it's animated:
+`src/features/marketing/components/workflow-animation.tsx`.
+
+**Footer.** "Developed by Yashwanth Aravind" with a link to
+`https://github.com/yash27007` (using the existing `/github.svg` mark),
+alongside the standard `/login`/`/signup` links.
 
 An already-authenticated visitor should never see the marketing page —
 they should land in the app. `src/lib/auth-utils.ts`'s `requireUnAuth`
