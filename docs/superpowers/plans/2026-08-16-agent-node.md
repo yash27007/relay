@@ -1937,6 +1937,8 @@ import type { AgentNodeData } from "./types";
 
 function createModel(provider: AIProviderType, apiKey: string): LanguageModel {
   switch (provider) {
+    case "OPENAI":
+      return createOpenAI({ apiKey })("gpt-4o-mini");
     case "ANTHROPIC":
       return createAnthropic({ apiKey })("claude-sonnet-5");
     case "GEMINI":
@@ -1944,7 +1946,12 @@ function createModel(provider: AIProviderType, apiKey: string): LanguageModel {
     case "GROQ":
       return createGroq({ apiKey })("llama-3.3-70b-versatile");
     default:
-      return createOpenAI({ apiKey })("gpt-4o-mini");
+      // AIProviderType is the CredentialType Prisma enum — every member is
+      // handled explicitly above. A default that silently fell through to
+      // one provider's SDK would risk sending a *different* provider's
+      // decrypted API key to the wrong one if the enum ever grows a member
+      // without a matching case here.
+      throw new NonRetriableError(`Agent node: Unsupported model provider "${provider}"`);
   }
 }
 
@@ -2042,16 +2049,35 @@ export const AgentExecutor: NodeExecutor<AgentNodeData> = async ({
                 allConnections,
               });
               const toolVariableName = (toolNode.data as { variableName?: string }).variableName;
+              // Falling back to the whole `result.context` here would leak
+              // every prior node's output (plus this call's own $fromAI
+              // args) to the model provider whenever the tool's variable
+              // resolves to null/undefined — unreachable today (HTTP
+              // Request always writes its variable, and discoverToolNodes
+              // already requires one), but a real footgun for future
+              // tool-capable node types. Fall back to an explicit,
+              // information-free error instead.
               return toolVariableName
-                ? (result.context[toolVariableName] ?? result.context)
-                : result.context;
+                ? (result.context[toolVariableName] ?? { error: "Tool produced no output" })
+                : { error: "Tool produced no output" };
             } catch (error) {
-              // A tool failure is domain information for the model, not a
-              // workflow-execution failure — it can retry with different
-              // arguments, try something else, or explain the failure in
-              // its final answer. Deliberately differs from every other
-              // node's fail-the-whole-run convention (see the plan's
+              // A tool's own config validation failure (e.g. HTTP Request's
+              // "No endpoint configured") is a NonRetriableError the SAME
+              // way it would be if this node ran in the main flow — no
+              // amount of the model retrying with different $fromAI args
+              // will ever fix a static misconfiguration, so let it abort
+              // the run like every other node's validation does, rather
+              // than becoming a {error} result the model would burn
+              // maxSteps retrying against something that can never
+              // succeed. Only a tool's *runtime* failure (a bad argument,
+              // a transient API error) is domain information the model can
+              // usefully react to — that's the case this catch still
+              // handles, and it's the one deliberate departure from every
+              // other node's fail-the-whole-run convention (see the plan's
               // Global Constraints).
+              if (error instanceof NonRetriableError) {
+                throw error;
+              }
               return { error: error instanceof Error ? error.message : String(error) };
             }
           },

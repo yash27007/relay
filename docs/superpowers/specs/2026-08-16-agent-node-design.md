@@ -280,15 +280,25 @@ type HttpRequestData = {
 
 - Missing/invalid Agent config: `NonRetriableError`, fails the node (same
   as today's AI/HTTP nodes) — no tool loop starts.
-- A tool node invocation throwing (e.g. HTTP Request's own
-  `NonRetriableError` for an invalid URL): caught inside that tool's
-  `execute()`, returned to the model as a tool-result error object (e.g.
-  `{ error: "HTTP Request node: Invalid URL endpoint" }`) rather than
-  propagated — the LLM continues its loop and can react (retry with
-  different arguments, try a different approach, or explain the failure
-  in its final answer). This deliberately differs from every other node
-  type's fail-the-whole-run convention: a tool failure is domain
+- A tool node's **runtime** failure (e.g. the target API returning a 500,
+  or an argument-dependent 404 — something a differently-parameterized
+  retry could plausibly resolve): caught inside that tool's `execute()`,
+  returned to the model as a tool-result error object (e.g.
+  `{ error: "Request failed with status 500" }`) rather than propagated —
+  the LLM continues its loop and can react (retry with different
+  arguments, try a different approach, or explain the failure in its final
+  answer). This deliberately differs from every other node type's
+  fail-the-whole-run convention: a runtime tool failure is domain
   information for the agent, not a workflow-execution failure.
+- **Amendment (post-launch task review, 2026-08-16):** a tool node's own
+  *configuration* failure — a `NonRetriableError` the tool would also
+  throw in the main flow, e.g. HTTP Request's "No endpoint configured" —
+  is NOT treated as a retriable tool-result error. No amount of the model
+  retrying with different `$fromAI` arguments can fix a static
+  misconfiguration, so it aborts the run the same way it would for any
+  other node type, rather than letting the model burn its `maxSteps`
+  budget retrying something that can never succeed. Only a tool's runtime
+  failure gets the error-result treatment described above.
 - The `generateText` call itself throwing (model API error, rate limit,
   etc. that survives `ai-sdk`'s own retry): propagates out of the
   `step.run(agent-run-...)` step normally, which `runWorkflow`'s existing
