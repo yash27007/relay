@@ -4,5 +4,6 @@ import { createAiExecutor } from "../ai/create-ai-executor";
 export const AnthropicExecutor = createAiExecutor({
   providerType: "ANTHROPIC",
   providerLabel: "Anthropic",
-  createModel: (apiKey) => createAnthropic({ apiKey })("claude-sonnet-5"),
+  defaultModel: "claude-sonnet-5",
+  createModel: (apiKey, model) => createAnthropic({ apiKey })(model),
 });
