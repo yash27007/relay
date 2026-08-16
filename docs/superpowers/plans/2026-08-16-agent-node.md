@@ -1589,9 +1589,23 @@ export const AgentNodeDialog = ({ open, onOpenChange, onSubmit, defaultValues = 
   // happens to change while open (it doesn't today, but matches the same
   // open-gated pattern every other node dialog in this codebase already
   // uses, e.g. ai-dialog.tsx).
+  //
+  // Tracks the provider value the form was last explicitly set to (by this
+  // reset, or by the user's own change below) — NOT a "skip the next
+  // change" boolean. A boolean armed on every open and consumed by a
+  // *separate* effect keyed on watchProvider is fragile: if reset() doesn't
+  // actually change provider's resolved value (the common case — reopening
+  // an unedited, already-configured node), that consuming effect never
+  // fires this cycle, so the flag stays armed and gets wrongly spent on the
+  // user's own first real change instead. Comparing watchProvider directly
+  // against "the value we last intentionally set it to" is correct
+  // regardless of whether reset() produced a distinct render.
+  const lastSyncedProviderRef = useRef(toFormDefaults(defaultValues).provider);
   useEffect(() => {
     if (open) {
-      form.reset(toFormDefaults(defaultValues));
+      const defaults = toFormDefaults(defaultValues);
+      form.reset(defaults);
+      lastSyncedProviderRef.current = defaults.provider;
     }
   }, [open, defaultValues, form]);
 
@@ -1599,21 +1613,13 @@ export const AgentNodeDialog = ({ open, onOpenChange, onSubmit, defaultValues = 
   const watchVariableName = form.watch("variableName") || "myAgent";
 
   // Switching providers invalidates whatever credential was selected (it
-  // belongs to the old provider's type) — clear it. Skipped on the render
-  // right after the dialog opens/resets, so loading an already-configured
-  // Agent node doesn't immediately wipe its saved credentialId.
-  const skipNextProviderReset = useRef(true);
+  // belongs to the old provider's type) — clear it. Compares against the
+  // ref above rather than the previous render's value, so this only fires
+  // for a real, user-driven provider change, not the render where
+  // watchProvider merely catches up to what reset() just assigned it.
   useEffect(() => {
-    if (open) {
-      skipNextProviderReset.current = true;
-      return;
-    }
-  }, [open]);
-  useEffect(() => {
-    if (skipNextProviderReset.current) {
-      skipNextProviderReset.current = false;
-      return;
-    }
+    if (watchProvider === lastSyncedProviderRef.current) return;
+    lastSyncedProviderRef.current = watchProvider;
     form.setValue("credentialId", "");
   }, [watchProvider, form]);
 
@@ -1660,7 +1666,7 @@ export const AgentNodeDialog = ({ open, onOpenChange, onSubmit, defaultValues = 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Model Provider</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select a provider" />
