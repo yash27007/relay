@@ -56,6 +56,8 @@ export const ModelName = {
   Account: 'Account',
   Verification: 'Verification',
   Workflow: 'Workflow',
+  WorkflowRun: 'WorkflowRun',
+  WorkflowRunStep: 'WorkflowRunStep',
   Credential: 'Credential',
   Node: 'Node',
   Connection: 'Connection'
@@ -144,6 +146,34 @@ export const WorkflowScalarFieldEnum = {
 } as const
 
 export type WorkflowScalarFieldEnum = (typeof WorkflowScalarFieldEnum)[keyof typeof WorkflowScalarFieldEnum]
+
+
+export const WorkflowRunScalarFieldEnum = {
+  id: 'id',
+  workflowId: 'workflowId',
+  userId: 'userId',
+  status: 'status',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  error: 'error'
+} as const
+
+export type WorkflowRunScalarFieldEnum = (typeof WorkflowRunScalarFieldEnum)[keyof typeof WorkflowRunScalarFieldEnum]
+
+
+export const WorkflowRunStepScalarFieldEnum = {
+  id: 'id',
+  runId: 'runId',
+  nodeId: 'nodeId',
+  nodeName: 'nodeName',
+  nodeType: 'nodeType',
+  status: 'status',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  error: 'error'
+} as const
+
+export type WorkflowRunStepScalarFieldEnum = (typeof WorkflowRunStepScalarFieldEnum)[keyof typeof WorkflowRunStepScalarFieldEnum]
 
 
 export const CredentialScalarFieldEnum = {

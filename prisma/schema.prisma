@@ -8,13 +8,13 @@ datasource db {
 }
 
 model User {
-  id            String     @id
+  id            String       @id
   name          String
   email         String
-  emailVerified Boolean    @default(false)
+  emailVerified Boolean      @default(false)
   image         String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
   sessions      Session[]
   accounts      Account[]
   workflows     Workflow[]
@@ -74,14 +74,54 @@ model Verification {
 }
 
 model Workflow {
-  id          String       @id @default(cuid())
+  id          String        @id @default(cuid())
   name        String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   userId      String
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   nodes       Node[]
   connections Connection[]
+  runs        WorkflowRun[]
+}
+
+enum RunStatus {
+  RUNNING
+  SUCCESS
+  ERROR
+}
+
+model WorkflowRun {
+  id          String            @id @default(cuid())
+  workflowId  String
+  workflow    Workflow          @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  userId      String
+  status      RunStatus         @default(RUNNING)
+  startedAt   DateTime          @default(now())
+  completedAt DateTime?
+  error       String?
+  steps       WorkflowRunStep[]
+
+  @@index([userId, startedAt])
+  @@index([workflowId, startedAt])
+  @@map("workflow_run")
+}
+
+model WorkflowRunStep {
+  id          String      @id @default(cuid())
+  runId       String
+  run         WorkflowRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  nodeId      String
+  nodeName    String
+  nodeType    String
+  status      RunStatus   @default(RUNNING)
+  startedAt   DateTime    @default(now())
+  completedAt DateTime?
+  error       String?
+
+  @@unique([runId, nodeId])
+  @@index([runId])
+  @@map("workflow_run_step")
 }
 
 enum CredentialType {
