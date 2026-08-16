@@ -40,7 +40,9 @@ export const useCreateApiKey = () => {
     trpc.credentials.apiKeys.create.mutationOptions({
       onSuccess: (data) => {
         toast.success(`${data.name} saved`);
-        queryClient.invalidateQueries(trpc.credentials.apiKeys.list.queryOptions());
+        // Invalidates list AND every listByType(...) variant, so a node
+        // dialog's credential picker (which queries by type) doesn't go stale.
+        queryClient.invalidateQueries(trpc.credentials.apiKeys.pathFilter());
       },
       onError: (error) => {
         toast.error(`Failed to save API key: ${error.message}`);
@@ -59,7 +61,7 @@ export const useRemoveApiKey = () => {
     trpc.credentials.apiKeys.remove.mutationOptions({
       onSuccess: () => {
         toast.success("API key removed");
-        queryClient.invalidateQueries(trpc.credentials.apiKeys.list.queryOptions());
+        queryClient.invalidateQueries(trpc.credentials.apiKeys.pathFilter());
       },
       onError: (error) => {
         toast.error(`Failed to remove API key: ${error.message}`);

@@ -83,6 +83,7 @@ export const credentialsRouter = createTRPCRouter({
       .mutation(({ ctx, input }) => {
         return ctx.prisma.credential.delete({
           where: { id: input.id, userId: ctx.auth.user.id },
+          select: CREDENTIAL_SELECT,
         });
       }),
   }),

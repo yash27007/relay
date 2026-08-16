@@ -1,6 +1,13 @@
-export const AI_PROVIDER_TYPES = ["OPENAI", "ANTHROPIC", "GEMINI", "GROQ"] as const;
+import { CredentialType } from "@/generated/prisma/enums";
 
-export type AIProviderType = (typeof AI_PROVIDER_TYPES)[number];
+// Derived from the Prisma enum (not hand-copied) so this can't drift if
+// CredentialType ever gains/loses a member.
+export const AI_PROVIDER_TYPES = Object.values(CredentialType) as [
+  CredentialType,
+  ...CredentialType[],
+];
+
+export type AIProviderType = CredentialType;
 
 export const AI_PROVIDERS: { type: AIProviderType; label: string }[] = [
   { type: "OPENAI", label: "OpenAI" },
