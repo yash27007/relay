@@ -3,7 +3,8 @@
 import { ErrorView, LoadingView } from "@/components/dashboard";
 import { useSuspenseWorkflow } from "@/features/workflows/hooks/use-workflows";
 import { useAutosave } from "@/features/workflows/hooks/use-autosave";
-import { useState, useCallback, useMemo } from "react";
+import { useTheme } from "next-themes";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import {
   ReactFlow,
   applyNodeChanges,
@@ -43,6 +44,17 @@ export const Editor = ({ workflowID }: { workflowID: string }) => {
 
   const [nodes, setNodes] = useState<Node[]>(workflow.nodes);
   const [edges, setEdges] = useState<Edge[]>(workflow.edges);
+
+  // React Flow's Controls/MiniMap/Background ship their own light-oriented
+  // default styling — colorMode applies xyflow's built-in dark theme class
+  // instead of leaving them stuck light regardless of the app's theme.
+  // `mounted` avoids a hydration mismatch, matching the same pattern
+  // app-sidebar.tsx uses for its own theme toggle.
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Autosave hook - saves after 1 second of inactivity
   useAutosave({
@@ -90,6 +102,7 @@ export const Editor = ({ workflowID }: { workflowID: string }) => {
         }}
         nodeTypes={nodeComponents}
         onInit={setEditor}
+        colorMode={mounted && resolvedTheme === "dark" ? "dark" : "light"}
         snapGrid={[10, 10]}
         snapToGrid
         panOnScroll
