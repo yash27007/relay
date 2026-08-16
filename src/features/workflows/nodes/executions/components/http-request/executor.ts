@@ -1,13 +1,16 @@
 import { NonRetriableError } from "inngest";
 import ky, { type Options as KyOps } from "ky";
 import { NodeExecutor } from "../../../executions/types";
+import type { AiToolConfig } from "../../lib/ai-tool";
 import { resolveTemplate } from "../../lib/resolve-template";
 
-type HttpRequestData = {
+export type HttpRequestData = {
   variableName?: string;
   endpoint?: string;
   method?: "GET" | "PUT" | "POST" | "PATCH" | "DELETE";
   body?: string;
+  /** Set when this node is configured as a callable Agent tool (Task 7 reads this). */
+  aiTool?: AiToolConfig;
 };
 
 function stringifyResolved(value: unknown): string {

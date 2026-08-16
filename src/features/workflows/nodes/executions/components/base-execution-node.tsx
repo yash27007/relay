@@ -11,12 +11,15 @@ import { BaseHandle } from "../../react-flow/base-handle"
 import { WorkflowNode } from "../../workflow-node"
 import { NodeStatus, NodeStatusIndicator } from "../../react-flow/status-indicator"
 import { NodeIcon } from "../../node-icon"
+import { toolSourceHandleId } from "../lib/tool-connections"
 interface BaseExecutionNodeProps extends NodeProps {
     icon: LucideIcon | string;
     name: string;
     description?: string;
     children?: ReactNode;
     status?: NodeStatus;
+    /** Renders a second source handle (bottom) an Agent node can wire into as a tool. */
+    toolCapable?: boolean;
     onSetting?: () => void;
     onDoubleClick?: () => void;
 }
@@ -29,6 +32,7 @@ export const BaseExecutionNode = memo(
         children,
         status = "initial",
         description,
+        toolCapable = false,
         onSetting,
         onDoubleClick
     }: BaseExecutionNodeProps) => {
@@ -74,6 +78,14 @@ export const BaseExecutionNode = memo(
                                 type="source"
                                 position={Position.Right}
                             />
+                            {toolCapable && (
+                                <BaseHandle
+                                    id={toolSourceHandleId(id)}
+                                    type="source"
+                                    position={Position.Bottom}
+                                    title="Use as an AI tool"
+                                />
+                            )}
                         </BaseNodeContent>
                     </BaseNode>
                 </NodeStatusIndicator>

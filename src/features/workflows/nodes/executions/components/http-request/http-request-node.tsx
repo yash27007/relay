@@ -6,16 +6,10 @@ import { GlobeIcon } from "lucide-react"
 import { memo, useState } from "react";
 import type { NodeStatus } from "../../../react-flow/status-indicator";
 import { BaseExecutionNode } from "../base-execution-node";
-import { HttpRequestFormValues, HttpRequestNodeDialog } from "./dialog";
+import type { HttpRequestData } from "./executor";
+import { HttpRequestNodeDialog, type HttpRequestSubmitValues } from "./dialog";
 
-type HttpRequestNodeData = {
-    variableName?: string;
-    endpoint?: string;
-    method?: "GET" | "PUT" | "POST" | "PATCH" | "DELETE";
-    body?: string;
-};
-
-type HttpRequestNodeType = Node<HttpRequestNodeData>;
+type HttpRequestNodeType = Node<HttpRequestData>;
 
 export const HttpRequestNode = memo((props: NodeProps<HttpRequestNodeType>) => {
 
@@ -26,7 +20,7 @@ export const HttpRequestNode = memo((props: NodeProps<HttpRequestNodeType>) => {
     const [dialogOpen, setDialogOpen] = useState(false)
     const handleOpenSettings = () => setDialogOpen(true)
 
-    const handleSubmit = (values: HttpRequestFormValues) => {
+    const handleSubmit = (values: HttpRequestSubmitValues) => {
         setNodes((nodes) => nodes.map((node => {
             if (node.id === props.id) {
                 return {
@@ -62,6 +56,7 @@ export const HttpRequestNode = memo((props: NodeProps<HttpRequestNodeType>) => {
                 name="HTTP Request"
                 description={description}
                 status={nodeStatus}
+                toolCapable
                 onSetting={handleOpenSettings}
                 onDoubleClick={handleOpenSettings}
             />
