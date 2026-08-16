@@ -27,6 +27,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { ModelCombobox } from "@/features/credentials/components/model-combobox";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
@@ -44,8 +47,12 @@ const formSchema = z.object({
       "Variable name must start with a letter or underscore and contain only letters, numbers, and underscores",
     ),
   credentialId: z.string().min(1, "Credential is required"),
+  model: z.string().optional(),
   systemPrompt: z.string().optional(),
   userPrompt: z.string().min(1, "User prompt is required"),
+  temperature: z.number().min(0).max(2).optional(),
+  maxTokens: z.number().int().positive().optional(),
+  jsonMode: z.boolean().optional(),
 });
 
 export type AiFormValues = z.infer<typeof formSchema>;
@@ -75,8 +82,12 @@ export const AiNodeDialog = ({
     defaultValues: {
       variableName: defaultValues.variableName || "",
       credentialId: defaultValues.credentialId || "",
+      model: defaultValues.model || "",
       systemPrompt: defaultValues.systemPrompt || "",
       userPrompt: defaultValues.userPrompt || "",
+      temperature: defaultValues.temperature ?? 0.7,
+      maxTokens: defaultValues.maxTokens,
+      jsonMode: defaultValues.jsonMode ?? false,
     },
   });
 
@@ -85,13 +96,19 @@ export const AiNodeDialog = ({
       form.reset({
         variableName: defaultValues.variableName || "",
         credentialId: defaultValues.credentialId || "",
+        model: defaultValues.model || "",
         systemPrompt: defaultValues.systemPrompt || "",
         userPrompt: defaultValues.userPrompt || "",
+        temperature: defaultValues.temperature ?? 0.7,
+        maxTokens: defaultValues.maxTokens,
+        jsonMode: defaultValues.jsonMode ?? false,
       });
     }
   }, [open, defaultValues, form]);
 
   const watchVariableName = form.watch("variableName") || "myAi";
+  const watchCredentialId = form.watch("credentialId");
+  const watchModel = form.watch("model");
 
   const handleSubmit = (values: AiFormValues) => {
     onSubmit(values);
@@ -172,6 +189,26 @@ export const AiNodeDialog = ({
             />
             <FormField
               control={form.control}
+              name="model"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Model</FormLabel>
+                  <FormControl>
+                    <ModelCombobox
+                      credentialId={watchCredentialId || undefined}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    {watchModel ? `Using ${watchModel}.` : "Uses each provider's default model if left unset."}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="systemPrompt"
               render={({ field }) => (
                 <FormItem>
@@ -208,6 +245,67 @@ export const AiNodeDialog = ({
                     earlier nodes' output.
                   </FormDescription>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="temperature"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Temperature ({(field.value ?? 0.7).toFixed(1)})</FormLabel>
+                  <FormControl>
+                    <Slider
+                      min={0}
+                      max={2}
+                      step={0.1}
+                      value={[field.value ?? 0.7]}
+                      onValueChange={([next]) => field.onChange(next)}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Lower is more focused and deterministic, higher is more varied.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="maxTokens"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Max Tokens (Optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={1}
+                      placeholder="Provider default"
+                      value={field.value ?? ""}
+                      onChange={(event) =>
+                        field.onChange(event.target.value ? Number(event.target.value) : undefined)
+                      }
+                    />
+                  </FormControl>
+                  <FormDescription>Leave blank to use the provider's own default.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="jsonMode"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between rounded-lg border p-3">
+                  <div className="space-y-0.5">
+                    <FormLabel>JSON Mode</FormLabel>
+                    <FormDescription>
+                      Ask the model to return a JSON-formatted response.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch checked={field.value ?? false} onCheckedChange={field.onChange} />
+                  </FormControl>
                 </FormItem>
               )}
             />
