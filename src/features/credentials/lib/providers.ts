@@ -17,6 +17,7 @@ export const CREDENTIAL_PROVIDERS = [
     id: "google",
     label: "Google",
     description: "Sheets, Docs, and Gmail nodes",
+    icon: "/google.svg",
     scopes: [
       "https://www.googleapis.com/auth/spreadsheets",
       "https://www.googleapis.com/auth/documents",
@@ -29,6 +30,7 @@ export const CREDENTIAL_PROVIDERS = [
     id: "slack",
     label: "Slack",
     description: "Send messages to a channel",
+    icon: "/slack.svg",
     scopes: ["chat:write", "channels:read"],
     clientIdEnvVar: "SLACK_CLIENT_ID",
     clientSecretEnvVar: "SLACK_CLIENT_SECRET",
@@ -37,6 +39,7 @@ export const CREDENTIAL_PROVIDERS = [
     id: "github",
     label: "GitHub",
     description: "Repository nodes",
+    icon: "/github.svg",
     scopes: ["repo"],
     clientIdEnvVar: "GITHUB_CLIENT_ID",
     clientSecretEnvVar: "GITHUB_CLIENT_SECRET",
@@ -45,9 +48,24 @@ export const CREDENTIAL_PROVIDERS = [
     id: "microsoft",
     label: "Microsoft",
     description: "Outlook mail nodes",
+    icon: "/microsoft.svg",
     scopes: ["Mail.Send", "Mail.Read"],
     clientIdEnvVar: "MICROSOFT_CLIENT_ID",
     clientSecretEnvVar: "MICROSOFT_CLIENT_SECRET",
+  },
+  {
+    id: "discord",
+    label: "Discord",
+    description: "Send messages to a channel",
+    icon: "/discord.svg",
+    // A plain OAuth "connect" grants a *user* token, same caveat as Slack
+    // above — sending messages as a bot into a server's channels typically
+    // needs a Discord application installed with a bot token, a different
+    // flow than this simple user-OAuth. Revisit when building the Discord
+    // node.
+    scopes: ["identify"],
+    clientIdEnvVar: "DISCORD_CLIENT_ID",
+    clientSecretEnvVar: "DISCORD_CLIENT_SECRET",
   },
 ] as const;
 

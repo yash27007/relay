@@ -15,7 +15,8 @@ type AiNodeType = Node<AiNodeData>;
 interface CreateAiNodeOptions {
   providerType: AIProviderType;
   providerLabel: string;
-  icon: LucideIcon;
+  /** A lucide icon component, or a path to an SVG under public/ (e.g. "/openai.svg"). */
+  icon: LucideIcon | string;
 }
 
 /**

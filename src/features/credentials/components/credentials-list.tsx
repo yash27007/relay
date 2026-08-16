@@ -2,6 +2,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2Icon } from "lucide-react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { useTRPC } from "@/trpc/client";
@@ -77,7 +78,10 @@ export const CredentialsList = () => {
           <Card key={credential.id}>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>{credential.label}</CardTitle>
+                <div className="flex items-center gap-2">
+                  <Image src={credential.icon} alt="" width={20} height={20} />
+                  <CardTitle>{credential.label}</CardTitle>
+                </div>
                 {credential.connected && (
                   <Badge variant="secondary">
                     <CheckCircle2Icon className="size-3" />

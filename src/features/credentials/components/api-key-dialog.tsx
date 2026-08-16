@@ -28,6 +28,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
+import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState, type ReactNode } from "react";
@@ -109,7 +110,10 @@ export const ApiKeyDialog = ({ children }: { children?: ReactNode }) => {
                     <SelectContent>
                       {AI_PROVIDERS.map((provider) => (
                         <SelectItem key={provider.type} value={provider.type}>
-                          {provider.label}
+                          <div className="flex items-center gap-2">
+                            <Image src={provider.icon} alt="" width={16} height={16} />
+                            {provider.label}
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>

@@ -39,6 +39,12 @@ if (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET) {
     clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
   };
 }
+if (process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET) {
+  socialProviders.discord = {
+    clientId: process.env.DISCORD_CLIENT_ID,
+    clientSecret: process.env.DISCORD_CLIENT_SECRET,
+  };
+}
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {

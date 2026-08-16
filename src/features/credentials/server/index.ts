@@ -30,6 +30,7 @@ export const credentialsRouter = createTRPCRouter({
         id: provider.id,
         label: provider.label,
         description: provider.description,
+        icon: provider.icon,
         configured: isProviderConfigured(provider.id),
         connected: Boolean(linked),
         scopes: linked?.scopes ?? [],
