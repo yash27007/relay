@@ -5,11 +5,11 @@ import { HttpRequestNode } from "./executions/components/http-request/http-reque
 import { ManualTriggerNode } from "./triggers/components/manual-trigger/manual-trigger";
 import { IfNode } from "./executions/components/if/if-node";
 
-export const nodeComponents = {
+export const nodeComponents: Record<NodeType, NodeTypes[string]> = {
   [NodeType.INITIAL]: InitialNode,
   [NodeType.HTTP_REQUEST]: HttpRequestNode,
   [NodeType.MANUAL_TRIGGER]: ManualTriggerNode,
   [NodeType.IF]: IfNode,
-} as const satisfies NodeTypes;
+} satisfies NodeTypes;
 
 export type RegisteredNodeType = keyof typeof nodeComponents;

@@ -73,14 +73,24 @@ export const BaseBranchNode = memo(
               {children}
               <BaseHandle id={`${id}-target`} type="target" position={Position.Left} />
               {outputs.map((output, index) => (
-                <BaseHandle
-                  key={output.id}
-                  id={`${id}-${output.id}-source`}
-                  type="source"
-                  position={Position.Right}
-                  title={output.label}
-                  style={{ top: `${((index + 1) / (outputs.length + 1)) * 100}%` }}
-                />
+                <div key={output.id} className="contents">
+                  <span
+                    className="absolute right-5 text-[10px] font-medium text-muted-foreground pointer-events-none"
+                    style={{
+                      top: `${((index + 1) / (outputs.length + 1)) * 100}%`,
+                      transform: "translateY(-50%)",
+                    }}
+                  >
+                    {output.label}
+                  </span>
+                  <BaseHandle
+                    id={`${id}-${output.id}-source`}
+                    type="source"
+                    position={Position.Right}
+                    title={output.label}
+                    style={{ top: `${((index + 1) / (outputs.length + 1)) * 100}%` }}
+                  />
+                </div>
               ))}
             </BaseNodeContent>
           </BaseNode>
