@@ -9,6 +9,8 @@ import {
 import { NodeType } from "@/generated/prisma/enums";
 import type { Edge, Node } from "@xyflow/react";
 import { inngest } from "@/inngest/client";
+import { getSubscriptionToken } from "@inngest/realtime";
+import { workflowRunChannel } from "@/inngest/channels/workflow-run";
 
 export const workflowsRouter = createTRPCRouter({
   execute: protectedProcedure
@@ -30,6 +32,24 @@ export const workflowsRouter = createTRPCRouter({
     
     return workflow
   }),
+
+  getRealtimeToken: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Same ownership check as `execute` — never issue a subscription
+      // token for a workflow the caller doesn't own.
+      await ctx.prisma.workflow.findFirstOrThrow({
+        where: {
+          id: input.id,
+          userId: ctx.auth.user.id,
+        },
+      });
+
+      return getSubscriptionToken(inngest, {
+        channel: workflowRunChannel(input.id),
+        topics: ["status"],
+      });
+    }),
 
   create: premiumProcedure.mutation(({ ctx }) => {
     return ctx.prisma.workflow.create({
