@@ -4,6 +4,7 @@ import { Node, NodeProps, useReactFlow } from "@xyflow/react"
 
 import { GlobeIcon } from "lucide-react"
 import { memo, useState } from "react";
+import type { NodeStatus } from "../../../react-flow/status-indicator";
 import { BaseExecutionNode } from "../base-execution-node";
 import { HttpRequestFormValues, HttpRequestNodeDialog } from "./dialog";
 
@@ -40,7 +41,7 @@ export const HttpRequestNode = memo((props: NodeProps<HttpRequestNodeType>) => {
         })))
     }
 
-    const nodeStatus = "initial"
+    const nodeStatus = ((props.data as Record<string, any>)?.status as NodeStatus) ?? "initial"
     const nodeData = props.data;
     const description = nodeData?.endpoint
         ? `${nodeData.method || "GET"}: ${nodeData.endpoint}`

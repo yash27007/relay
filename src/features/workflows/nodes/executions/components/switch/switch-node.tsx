@@ -4,6 +4,7 @@ import { Node, NodeProps, useReactFlow } from "@xyflow/react";
 
 import { SplitIcon } from "lucide-react";
 import { memo, useState } from "react";
+import type { NodeStatus } from "../../../react-flow/status-indicator";
 import { BaseBranchNode, type BranchOutput } from "../base-branch-node";
 import { SwitchFormValues, SwitchNodeDialog } from "./dialog";
 
@@ -52,7 +53,7 @@ export const SwitchNode = memo((props: NodeProps<SwitchNodeType>) => {
     }
   };
 
-  const nodeStatus = "initial";
+  const nodeStatus = ((props.data as Record<string, any>)?.status as NodeStatus) ?? "initial";
   const nodeData = props.data;
   const cases = nodeData?.cases ?? [];
   const description = nodeData?.value

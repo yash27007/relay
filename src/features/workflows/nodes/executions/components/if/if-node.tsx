@@ -4,6 +4,7 @@ import { Node, NodeProps, useReactFlow } from "@xyflow/react";
 
 import { GitBranchIcon } from "lucide-react";
 import { memo, useState } from "react";
+import type { NodeStatus } from "../../../react-flow/status-indicator";
 import { BaseBranchNode } from "../base-branch-node";
 import {
   IfFormValues,
@@ -38,7 +39,7 @@ export const IfNode = memo((props: NodeProps<IfNodeType>) => {
     );
   };
 
-  const nodeStatus = "initial";
+  const nodeStatus = ((props.data as Record<string, any>)?.status as NodeStatus) ?? "initial";
   const nodeData = props.data;
   const description = nodeData?.operator
     ? `${nodeData.value || "value"} ${OPERATOR_LABELS[nodeData.operator]}${

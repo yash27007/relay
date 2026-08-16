@@ -23,7 +23,6 @@ export const HttpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
   data,
   step,
 }) => {
-  // TODO PUBLISH loading state for manual trigger
   if (!data.endpoint) {
     throw new NonRetriableError("HTTP Request node: No endpoint configured");
   }
@@ -86,6 +85,5 @@ export const HttpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
     };
   });
 
-  // TODO Publish success State for maual trigger
   return { context: response };
 };

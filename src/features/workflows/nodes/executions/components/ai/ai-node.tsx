@@ -5,6 +5,7 @@ import { Node, NodeProps, useReactFlow } from "@xyflow/react";
 import type { LucideIcon } from "lucide-react";
 import { memo, useState } from "react";
 import type { AIProviderType } from "@/features/credentials/lib/ai-providers";
+import type { NodeStatus } from "../../../react-flow/status-indicator";
 import { BaseExecutionNode } from "../base-execution-node";
 import { AiFormValues, AiNodeDialog } from "./ai-dialog";
 
@@ -48,7 +49,7 @@ export function createAiNode({ providerType, providerLabel, icon }: CreateAiNode
       );
     };
 
-    const nodeStatus = "initial";
+    const nodeStatus = ((props.data as Record<string, any>)?.status as NodeStatus) ?? "initial";
     const nodeData = props.data;
     const description = nodeData?.userPrompt
       ? `{{${nodeData.variableName || "myAi"}.text}}`
