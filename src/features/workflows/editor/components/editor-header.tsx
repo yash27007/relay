@@ -1,5 +1,4 @@
 "use client";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import {
   Breadcrumb,
@@ -193,7 +192,6 @@ export const EditorHeader = ({
 }) => {
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 bg-background">
-      <SidebarTrigger />
       <div className="flex flex-row items-center justify-between gap-x-4 w-full">
         <EditorBreadcrumbs workflowID={workflowID} />
         <div className="ml-auto flex items-center gap-4">
