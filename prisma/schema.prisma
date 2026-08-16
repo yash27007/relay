@@ -89,6 +89,10 @@ enum CredentialType {
   ANTHROPIC
   GEMINI
   GROQ
+  DEEPSEEK
+  MISTRAL
+  MOONSHOT
+  OLLAMA
 }
 
 // User-supplied API keys (encrypted at rest), distinct from the OAuth-linked
@@ -97,7 +101,8 @@ enum CredentialType {
 model Credential {
   id        String         @id @default(cuid())
   name      String
-  value     String
+  value     String?
+  config    Json?
   type      CredentialType
   userId    String
   user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -119,6 +124,10 @@ enum NodeType {
   GEMINI
   GROQ
   AGENT
+  DEEPSEEK
+  MISTRAL
+  MOONSHOT
+  OLLAMA
 }
 
 model Node {
