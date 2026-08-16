@@ -176,15 +176,21 @@ breaks. `temperature` and `maxOutputTokens` (the `generateText` v6
 parameter name — confirmed against the installed `ai` package's types
 during implementation) are threaded straight through when present.
 
-JSON mode is implemented via each provider's own structured-output
-mechanism, passed through `generateText`'s `providerOptions`
-(e.g. OpenAI's `response_format`-equivalent option) — the exact option
-key differs per provider and is confirmed against each `@ai-sdk/*`
-package's types at implementation time, not guessed here. If a chosen
-model doesn't actually support the requested mode, that surfaces as a
-normal provider-side execution error, the same way an invalid model name
-or a malformed request already does — this spec doesn't add per-model
-capability validation (see Explicitly excludes above).
+JSON mode is implemented with `ai`'s own provider-agnostic mechanism —
+`generateText`'s `output` parameter, set to `Output.json()` (imported as
+`import { Output } from "ai"`) when the toggle is on, `undefined`
+otherwise. This is the AI SDK's built-in "unstructured JSON generation"
+mode: no schema required (that's `Output.object()`, explicitly out of
+scope — see above), and the SDK — not this codebase — handles whichever
+provider-specific mechanism makes a given model actually return JSON.
+`result.text` is populated the same way regardless of `output` mode (a
+plain `string`, confirmed against the installed package's
+`GenerateTextResult` type), so this doesn't require a `providerOptions`
+passthrough or any per-provider branching. If a chosen model doesn't
+actually support JSON generation, that surfaces as a normal provider-side
+execution error, the same way an invalid model name or a malformed
+request already does — this spec doesn't add per-model capability
+validation (see Explicitly excludes above).
 
 Output contract is unchanged: every executor still returns
 `{ context: { ...context, [variableName]: { text } } }`. JSON mode
