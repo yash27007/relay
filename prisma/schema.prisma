@@ -118,6 +118,7 @@ enum NodeType {
   ANTHROPIC
   GEMINI
   GROQ
+  AGENT
 }
 
 model Node {
