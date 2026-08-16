@@ -8,7 +8,7 @@ import type { Connection, Node } from "@/generated/prisma/client";
 export const executeWorkflow = inngest.createFunction(
   { id: "execute-workflow" },
   { event: "workflows/execute.workflow" },
-  async ({ event, step }) => {
+  async ({ event, step, publish }) => {
     const workflowID = event.data.workflowID;
     if (!workflowID) {
       throw new NonRetriableError("Workflow ID is missing");
@@ -36,6 +36,8 @@ export const executeWorkflow = inngest.createFunction(
       // AI provider API key) scope that lookup by this, not anything
       // workflow-author-controlled.
       userId: workflow.userId,
+      workflowID,
+      publish,
     });
 
     return {
