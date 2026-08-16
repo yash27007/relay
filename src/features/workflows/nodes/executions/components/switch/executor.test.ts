@@ -16,6 +16,11 @@ function run(
     data,
     step: fakeStep,
     userId: "test-user",
+    getExecutor: () => {
+      throw new Error("getExecutor should not be called in SwitchExecutor tests");
+    },
+    allNodes: [],
+    allConnections: [],
   });
 }
 

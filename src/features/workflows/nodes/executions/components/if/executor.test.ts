@@ -10,7 +10,18 @@ function run(
   data: Parameters<typeof IfExecutor>[0]["data"],
   context: Record<string, unknown> = {},
 ) {
-  return IfExecutor({ nodeId: "if-1", context, data, step: fakeStep, userId: "test-user" });
+  return IfExecutor({
+    nodeId: "if-1",
+    context,
+    data,
+    step: fakeStep,
+    userId: "test-user",
+    getExecutor: () => {
+      throw new Error("getExecutor should not be called in IfExecutor tests");
+    },
+    allNodes: [],
+    allConnections: [],
+  });
 }
 
 describe("IfExecutor", () => {

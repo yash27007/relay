@@ -66,6 +66,9 @@ export async function runWorkflow({
         context,
         step,
         userId,
+        getExecutor,
+        allNodes: nodes,
+        allConnections: connections,
       });
     } catch (error) {
       // Each publish call the middleware wraps in its own durable `step.run`

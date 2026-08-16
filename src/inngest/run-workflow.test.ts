@@ -305,4 +305,41 @@ describe("runWorkflow", () => {
     const nodeIds = calls.map((c) => c.nodeId);
     expect(nodeIds).not.toContain("falseBranch");
   });
+
+  test("passes getExecutor, allNodes, and allConnections through to every executor call", async () => {
+    const nodes = [makeNode("a", "HTTP_REQUEST"), makeNode("b", "HTTP_REQUEST")];
+    const connections = [makeConnection("a", "b", "a-source")];
+    const seen: {
+      getExecutorIsFunction: boolean;
+      allNodesLength: number;
+      allConnectionsLength: number;
+    }[] = [];
+
+    const getExecutor = (): NodeExecutor =>
+      async ({ context, getExecutor: seenGetExecutor, allNodes, allConnections }) => {
+        seen.push({
+          getExecutorIsFunction: typeof seenGetExecutor === "function",
+          allNodesLength: allNodes.length,
+          allConnectionsLength: allConnections.length,
+        });
+        return { context };
+      };
+    const { publish } = makeFakePublish();
+
+    await runWorkflow({
+      nodes,
+      connections,
+      initialData: {},
+      step: fakeStep,
+      userId: "test-user",
+      workflowID: "workflow-1",
+      publish,
+      getExecutor,
+    });
+
+    expect(seen).toEqual([
+      { getExecutorIsFunction: true, allNodesLength: 2, allConnectionsLength: 1 },
+      { getExecutorIsFunction: true, allNodesLength: 2, allConnectionsLength: 1 },
+    ]);
+  });
 });

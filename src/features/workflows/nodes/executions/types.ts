@@ -1,3 +1,5 @@
+import type { Connection, Node } from "@/generated/prisma/client";
+import type { NodeType } from "@/generated/prisma/enums";
 import type { GetStepTools, Inngest } from "inngest";
 
 export type WorkflowContext = Record<string, unknown>;
@@ -17,7 +19,21 @@ export interface NodeExecutorParams<TData = Record<string, unknown>> {
    * API key) must scope that lookup by this id.
    */
   userId: string;
-  // publish : ADD real time later
+  /**
+   * The full executor registry lookup, threaded down uniformly like
+   * `step`/`userId` — only the Agent executor uses this, to invoke a
+   * connected tool node's real executor. Every other executor receives it
+   * but has no reason to call it.
+   */
+  getExecutor: (type: NodeType) => NodeExecutor;
+  /**
+   * The workflow's complete node/connection lists — same rationale as
+   * `getExecutor`. The Agent executor filters `allConnections` for
+   * connections into its own tool-target handle to discover which of
+   * `allNodes` are wired to it as tools.
+   */
+  allNodes: Node[];
+  allConnections: Connection[];
 }
 
 export interface NodeExecutorResult {
