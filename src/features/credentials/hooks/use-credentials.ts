@@ -25,10 +25,13 @@ export const useSuspenseApiKeys = () => {
  * Hook to fetch the current user's saved API keys for a single provider —
  * used by AI node dialogs to populate their credential picker.
  *
- * Deliberately non-suspense: unlike the Credentials page (which prefetches
- * and wraps its lists in Suspense), a node dialog mounts unconditionally as
- * soon as its node renders on the workflow canvas, with no Suspense
- * boundary above it in the editor tree. Callers handle `isLoading` instead.
+ * Deliberately non-suspense. The editor page does have a Suspense boundary
+ * (workflows/[workflowID]/page.tsx), but it wraps the whole editor —
+ * canvas, camera position, every other node. A node dialog mounts
+ * unconditionally alongside its node, so on a cache miss (e.g. a fresh AI
+ * node added to the canvas) useSuspenseQuery here would remount that
+ * entire boundary back to its loading fallback rather than just show a
+ * loading state inside this one dialog. Callers handle `isLoading` instead.
  */
 export const useApiKeysByType = (type: AIProviderType) => {
   const trpc = useTRPC();
