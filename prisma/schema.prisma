@@ -87,6 +87,7 @@ enum NodeType {
   MANUAL_TRIGGER
   HTTP_REQUEST
   IF
+  SWITCH
 }
 
 model Node {
