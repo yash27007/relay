@@ -40,11 +40,26 @@ function passthroughExecutor(calls: string[]): NodeExecutor {
   };
 }
 
+function makeFakePublish() {
+  const calls: { nodeId: string; status: string }[] = [];
+  const publish = async (
+    message:
+      | Promise<{ channel: string; topic: string; data: unknown }>
+      | { channel: string; topic: string; data: unknown },
+  ) => {
+    const resolved = await message;
+    const data = resolved.data as { nodeId: string; status: string };
+    calls.push({ nodeId: data.nodeId, status: data.status });
+  };
+  return { publish: publish as unknown as Parameters<typeof runWorkflow>[0]["publish"], calls };
+}
+
 describe("runWorkflow", () => {
   test("executes a linear chain in order", async () => {
     const calls: string[] = [];
     const nodes = [makeNode("a", "MANUAL_TRIGGER"), makeNode("b", "HTTP_REQUEST")];
     const connections = [makeConnection("a", "b", "a-source")];
+    const { publish } = makeFakePublish();
 
     await runWorkflow({
       nodes,
@@ -52,6 +67,8 @@ describe("runWorkflow", () => {
       initialData: {},
       step: fakeStep,
       userId: "test-user",
+      workflowID: "workflow-1",
+      publish,
       getExecutor: () => passthroughExecutor(calls),
     });
 
@@ -79,6 +96,7 @@ describe("runWorkflow", () => {
             return { context, branch: "true" };
           }
         : passthroughExecutor(calls);
+    const { publish } = makeFakePublish();
 
     await runWorkflow({
       nodes,
@@ -86,6 +104,8 @@ describe("runWorkflow", () => {
       initialData: {},
       step: fakeStep,
       userId: "test-user",
+      workflowID: "workflow-1",
+      publish,
       getExecutor: getExecutor as never,
     });
 
@@ -104,6 +124,7 @@ describe("runWorkflow", () => {
             return { context, branch: "false" };
           }
         : passthroughExecutor(calls);
+    const { publish } = makeFakePublish();
 
     await runWorkflow({
       nodes,
@@ -111,6 +132,8 @@ describe("runWorkflow", () => {
       initialData: {},
       step: fakeStep,
       userId: "test-user",
+      workflowID: "workflow-1",
+      publish,
       getExecutor: getExecutor as never,
     });
 
@@ -139,6 +162,7 @@ describe("runWorkflow", () => {
             return { context, branch: "true" };
           }
         : passthroughExecutor(calls);
+    const { publish } = makeFakePublish();
 
     await runWorkflow({
       nodes,
@@ -146,6 +170,8 @@ describe("runWorkflow", () => {
       initialData: {},
       step: fakeStep,
       userId: "test-user",
+      workflowID: "workflow-1",
+      publish,
       getExecutor: getExecutor as never,
     });
 
@@ -156,6 +182,7 @@ describe("runWorkflow", () => {
   test("rejects a workflow that contains a cycle", async () => {
     const nodes = [makeNode("a", "HTTP_REQUEST"), makeNode("b", "HTTP_REQUEST")];
     const connections = [makeConnection("a", "b"), makeConnection("b", "a")];
+    const { publish } = makeFakePublish();
 
     await expect(
       runWorkflow({
@@ -164,6 +191,8 @@ describe("runWorkflow", () => {
         initialData: {},
         step: fakeStep,
         userId: "test-user",
+        workflowID: "workflow-1",
+        publish,
         getExecutor: () => passthroughExecutor([]),
       }),
     ).rejects.toThrow("Workflow contains a cycle");
@@ -179,6 +208,7 @@ describe("runWorkflow", () => {
         seenUserIds.push(userId);
         return { context };
       };
+    const { publish } = makeFakePublish();
 
     await runWorkflow({
       nodes,
@@ -186,9 +216,93 @@ describe("runWorkflow", () => {
       initialData: {},
       step: fakeStep,
       userId: "owner-user-id",
+      workflowID: "workflow-1",
+      publish,
       getExecutor,
     });
 
     expect(seenUserIds).toEqual(["owner-user-id"]);
+  });
+
+  test("publishes loading then success for a node that completes normally", async () => {
+    const { publish, calls } = makeFakePublish();
+    const nodes = [makeNode("a", "HTTP_REQUEST")];
+    const connections: Connection[] = [];
+
+    await runWorkflow({
+      nodes,
+      connections,
+      initialData: {},
+      step: fakeStep,
+      userId: "test-user",
+      workflowID: "workflow-1",
+      publish,
+      getExecutor: () => passthroughExecutor([]),
+    });
+
+    expect(calls).toEqual([
+      { nodeId: "a", status: "loading" },
+      { nodeId: "a", status: "success" },
+    ]);
+  });
+
+  test("publishes loading then error for a node that throws, and still propagates the error", async () => {
+    const { publish, calls } = makeFakePublish();
+    const nodes = [makeNode("a", "HTTP_REQUEST")];
+    const connections: Connection[] = [];
+
+    const throwingExecutor: NodeExecutor = async () => {
+      throw new Error("boom");
+    };
+
+    await expect(
+      runWorkflow({
+        nodes,
+        connections,
+        initialData: {},
+        step: fakeStep,
+        userId: "test-user",
+        workflowID: "workflow-1",
+        publish,
+        getExecutor: () => throwingExecutor,
+      }),
+    ).rejects.toThrow("boom");
+
+    expect(calls).toEqual([
+      { nodeId: "a", status: "loading" },
+      { nodeId: "a", status: "error" },
+    ]);
+  });
+
+  test("never publishes for a node on the untaken branch", async () => {
+    const { publish, calls } = makeFakePublish();
+    const nodes = [
+      makeNode("if", "IF"),
+      makeNode("trueBranch", "HTTP_REQUEST"),
+      makeNode("falseBranch", "HTTP_REQUEST"),
+    ];
+    const connections = [
+      makeConnection("if", "trueBranch", "if-true-source"),
+      makeConnection("if", "falseBranch", "if-false-source"),
+    ];
+
+    const getExecutor = (type: string): NodeExecutor =>
+      type === "IF"
+        ? async ({ context }) => ({ context, branch: "true" })
+        : passthroughExecutor([]);
+
+    await runWorkflow({
+      nodes,
+      connections,
+      initialData: {},
+      step: fakeStep,
+      userId: "test-user",
+      workflowID: "workflow-1",
+      publish,
+      getExecutor: getExecutor as never,
+    });
+
+    const nodeIds = calls.map((c) => c.nodeId);
+    expect(nodeIds).not.toContain("falseBranch");
   });
 });
