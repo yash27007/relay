@@ -20,14 +20,19 @@ function makeNode(id: string, type: string, data: Record<string, unknown> = {}):
   } as unknown as Node;
 }
 
-function makeConnection(fromNodeId: string, toNodeId: string, fromOutput = "main"): Connection {
+function makeConnection(
+  fromNodeId: string,
+  toNodeId: string,
+  fromOutput = "main",
+  toInput = "main",
+): Connection {
   return {
     id: `${fromNodeId}->${toNodeId}:${fromOutput}`,
     workflowId: "workflow-1",
     fromNodeId,
     toNodeId,
     fromOutput,
-    toInput: "main",
+    toInput,
     createdAt: new Date(),
     updatedAt: new Date(),
   } as unknown as Connection;
@@ -341,5 +346,52 @@ describe("runWorkflow", () => {
       { getExecutorIsFunction: true, allNodesLength: 2, allConnectionsLength: 1 },
       { getExecutorIsFunction: true, allNodesLength: 2, allConnectionsLength: 1 },
     ]);
+  });
+
+  test("a node connected only as a tool never executes via the main loop", async () => {
+    const calls: string[] = [];
+    const nodes = [makeNode("agent", "AGENT"), makeNode("tool", "HTTP_REQUEST")];
+    const connections = [makeConnection("tool", "agent", "tool-tool-source", "agent-tool-target")];
+    const { publish } = makeFakePublish();
+
+    await runWorkflow({
+      nodes,
+      connections,
+      initialData: {},
+      step: fakeStep,
+      userId: "test-user",
+      workflowID: "workflow-1",
+      publish,
+      getExecutor: () => passthroughExecutor(calls),
+    });
+
+    expect(calls).toEqual([]);
+  });
+
+  test("a tool connection never appears in the flow ordering or branch routing", async () => {
+    const calls: string[] = [];
+    const nodes = [
+      makeNode("trigger", "MANUAL_TRIGGER"),
+      makeNode("agent", "AGENT"),
+      makeNode("tool", "HTTP_REQUEST"),
+    ];
+    const connections = [
+      makeConnection("trigger", "agent", "trigger-source"),
+      makeConnection("tool", "agent", "tool-tool-source", "agent-tool-target"),
+    ];
+    const { publish } = makeFakePublish();
+
+    await runWorkflow({
+      nodes,
+      connections,
+      initialData: {},
+      step: fakeStep,
+      userId: "test-user",
+      workflowID: "workflow-1",
+      publish,
+      getExecutor: () => passthroughExecutor(calls),
+    });
+
+    expect(calls).toEqual(["trigger", "agent"]);
   });
 });

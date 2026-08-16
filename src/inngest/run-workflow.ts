@@ -6,6 +6,7 @@ import type {
   StepTools,
   WorkflowContext,
 } from "@/features/workflows/nodes/executions/types";
+import { isToolConnection } from "@/features/workflows/nodes/executions/lib/tool-connections";
 import { workflowRunChannel } from "./channels/workflow-run";
 import { topologicalSort } from "./utils";
 
@@ -32,10 +33,20 @@ export async function runWorkflow({
   workflowID,
   publish,
 }: RunWorkflowParams): Promise<WorkflowContext> {
-  const sortedNodes = topologicalSort(nodes, connections);
+  // Tool connections (an Agent node calling another node as a tool) are
+  // metadata for the Agent's own executor to discover, not part of the
+  // linear execution graph — excluded here so a tool-only node (no flow
+  // connection at all) is never treated as a "root" node and auto-executed
+  // by the main loop in addition to being callable as a tool.
+  const flowConnections = connections.filter((connection) => !isToolConnection(connection));
+  const toolNodeIds = new Set(
+    connections.filter(isToolConnection).map((connection) => connection.fromNodeId),
+  );
+
+  const sortedNodes = topologicalSort(nodes, flowConnections);
 
   const outputsByNode = new Map<string, Connection[]>();
-  for (const connection of connections) {
+  for (const connection of flowConnections) {
     const list = outputsByNode.get(connection.fromNodeId) ?? [];
     list.push(connection);
     outputsByNode.set(connection.fromNodeId, list);
@@ -43,7 +54,9 @@ export async function runWorkflow({
 
   const hasInbound = new Set(connections.map((connection) => connection.toNodeId));
   const reachable = new Set(
-    sortedNodes.filter((node) => !hasInbound.has(node.id)).map((node) => node.id),
+    sortedNodes
+      .filter((node) => !hasInbound.has(node.id) && !toolNodeIds.has(node.id))
+      .map((node) => node.id),
   );
 
   const ch = workflowRunChannel(workflowID);
