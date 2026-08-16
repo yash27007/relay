@@ -4,6 +4,10 @@ import { manualTriggerExecutor } from "../../triggers/components/manual-trigger/
 import { HttpRequestExecutor } from "../components/http-request/executor";
 import { IfExecutor } from "../components/if/executor";
 import { SwitchExecutor } from "../components/switch/executor";
+import { OpenAiExecutor } from "../components/openai/executor";
+import { AnthropicExecutor } from "../components/anthropic/executor";
+import { GeminiExecutor } from "../components/gemini/executor";
+import { GroqExecutor } from "../components/groq/executor";
 
 export const executorRegistry: Record<NodeType, NodeExecutor> = {
   [NodeType.MANUAL_TRIGGER]: manualTriggerExecutor,
@@ -11,6 +15,10 @@ export const executorRegistry: Record<NodeType, NodeExecutor> = {
   [NodeType.HTTP_REQUEST]: HttpRequestExecutor,
   [NodeType.IF]: IfExecutor,
   [NodeType.SWITCH]: SwitchExecutor,
+  [NodeType.OPENAI]: OpenAiExecutor,
+  [NodeType.ANTHROPIC]: AnthropicExecutor,
+  [NodeType.GEMINI]: GeminiExecutor,
+  [NodeType.GROQ]: GroqExecutor,
 };
 
 export const getExecutor = (type: NodeType): NodeExecutor => {

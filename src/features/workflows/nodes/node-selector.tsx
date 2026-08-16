@@ -1,9 +1,13 @@
 "use client"
 import {
+    BotIcon,
+    GemIcon,
     GitBranchIcon,
     GlobeIcon,
     MousePointerIcon,
-    SplitIcon
+    SparklesIcon,
+    SplitIcon,
+    ZapIcon
 } from "lucide-react"
 import { createId } from "@paralleldrive/cuid2"
 import type React from "react"
@@ -61,6 +65,30 @@ const executionNodes: NodeTypeOption[] = [
         label: "Switch",
         description: "Route the workflow to a matching case",
         icon: SplitIcon
+    },
+    {
+        type: NodeType.OPENAI,
+        label: "OpenAI",
+        description: "Generate text with an OpenAI model",
+        icon: BotIcon
+    },
+    {
+        type: NodeType.ANTHROPIC,
+        label: "Anthropic",
+        description: "Generate text with an Anthropic model",
+        icon: SparklesIcon
+    },
+    {
+        type: NodeType.GEMINI,
+        label: "Gemini",
+        description: "Generate text with a Gemini model",
+        icon: GemIcon
+    },
+    {
+        type: NodeType.GROQ,
+        label: "Groq",
+        description: "Generate text with a Groq-hosted model",
+        icon: ZapIcon
     },
 ];
 

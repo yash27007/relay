@@ -1,5 +1,5 @@
 "use client";
-import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTRPC } from "@/trpc/client";
 import type { AIProviderType } from "../lib/ai-providers";
@@ -24,10 +24,15 @@ export const useSuspenseApiKeys = () => {
 /**
  * Hook to fetch the current user's saved API keys for a single provider —
  * used by AI node dialogs to populate their credential picker.
+ *
+ * Deliberately non-suspense: unlike the Credentials page (which prefetches
+ * and wraps its lists in Suspense), a node dialog mounts unconditionally as
+ * soon as its node renders on the workflow canvas, with no Suspense
+ * boundary above it in the editor tree. Callers handle `isLoading` instead.
  */
 export const useApiKeysByType = (type: AIProviderType) => {
   const trpc = useTRPC();
-  return useSuspenseQuery(trpc.credentials.apiKeys.listByType.queryOptions({ type }));
+  return useQuery(trpc.credentials.apiKeys.listByType.queryOptions({ type }));
 };
 
 /**
