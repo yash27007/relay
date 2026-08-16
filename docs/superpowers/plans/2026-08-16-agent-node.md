@@ -17,7 +17,7 @@
 - `maxSteps` defaults to 5, is capped client-side at 15, and is clamped server-side to `[1, 15]` regardless of stored value.
 - A tool node's own executor invocation must NOT go through Inngest's real `step` tool (nesting is illegal) — use the passthrough `{ run: (_name, fn) => fn() }` shape already established as `fakeStep` in `src/inngest/run-workflow.test.ts`, cast `as unknown as StepTools`.
 - A tool invocation that throws becomes an error result fed back to the model (`{ error: string }`), never an aborted run — this is a deliberate, documented departure from every other node's fail-the-whole-run convention.
-- No unit test file for the Agent executor's top-level `generateText`-calling orchestration — matches this codebase's existing convention of zero test coverage for `create-ai-executor.ts` (mocking the AI SDK's network layer was never done for the 4 existing AI nodes). All new *pure* logic (tool discovery, zod schema building) gets its own dedicated, fully-tested module instead.
+- No unit test file for the Agent executor's top-level `generateText`-calling orchestration — matches this codebase's existing convention of zero test coverage for `create-ai-executor.ts` (mocking the AI SDK's network layer was never done for the 4 existing AI nodes). All new *pure* logic (tool discovery, zod schema building) gets its own dedicated, fully-tested module instead. **Amendment (post-launch final review, 2026-08-16):** this blanket "no coverage" call was weaker than warranted — `ai` ships `ai/test`'s `MockLanguageModelV3`, a zero-network mock this codebase never had reason to reach for before (the 4 single-shot AI nodes have no tool-call branching logic to mislead). A real bug in the Agent's tool-error handling shipped past nine per-task reviews specifically because nothing ever executed the loop. A narrow test covering tool-error semantics with `MockLanguageModelV3` was added after that finding — see the executor's own test file.
 - Every new/modified file matches this codebase's existing per-file conventions exactly (double-quote-free vs. double-quoted, `"use client"` placement, etc.) — copy the style of the nearest sibling file, not a fixed house style.
 
 ---
@@ -2061,23 +2061,24 @@ export const AgentExecutor: NodeExecutor<AgentNodeData> = async ({
                 ? (result.context[toolVariableName] ?? { error: "Tool produced no output" })
                 : { error: "Tool produced no output" };
             } catch (error) {
-              // A tool's own config validation failure (e.g. HTTP Request's
-              // "No endpoint configured") is a NonRetriableError the SAME
-              // way it would be if this node ran in the main flow — no
-              // amount of the model retrying with different $fromAI args
-              // will ever fix a static misconfiguration, so let it abort
-              // the run like every other node's validation does, rather
-              // than becoming a {error} result the model would burn
-              // maxSteps retrying against something that can never
-              // succeed. Only a tool's *runtime* failure (a bad argument,
-              // a transient API error) is domain information the model can
-              // usefully react to — that's the case this catch still
-              // handles, and it's the one deliberate departure from every
-              // other node's fail-the-whole-run convention (see the plan's
-              // Global Constraints).
-              if (error instanceof NonRetriableError) {
-                throw error;
-              }
+              // Every tool failure — a runtime error (bad argument,
+              // transient API error) or the tool's own config validation
+              // (e.g. HTTP Request's "No endpoint configured") — becomes
+              // domain information the model can react to, rather than
+              // aborting the run. This is the one deliberate departure
+              // from every other node's fail-the-whole-run convention (see
+              // the plan's Global Constraints).
+              //
+              // A config error can't be distinguished and made to abort
+              // here: `ai@6.0.31`'s tool-call executor catches everything
+              // this function throws and converts it to a `tool-error`
+              // content part before it ever reaches `generateText`'s
+              // caller — a `throw` inside `execute()` cannot escape
+              // `generateText`, confirmed against the installed package's
+              // own source. An earlier revision of this code tried a
+              // `NonRetriableError`-rethrow special case here; it was
+              // dead code (the SDK swallowed it identically either way)
+              // and has been removed.
               return { error: error instanceof Error ? error.message : String(error) };
             }
           },

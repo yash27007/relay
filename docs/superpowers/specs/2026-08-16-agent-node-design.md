@@ -280,25 +280,33 @@ type HttpRequestData = {
 
 - Missing/invalid Agent config: `NonRetriableError`, fails the node (same
   as today's AI/HTTP nodes) — no tool loop starts.
-- A tool node's **runtime** failure (e.g. the target API returning a 500,
-  or an argument-dependent 404 — something a differently-parameterized
-  retry could plausibly resolve): caught inside that tool's `execute()`,
+- A tool node invocation throwing — whether a **runtime** failure (the
+  target API returning a 500, an argument-dependent 404) or the tool's own
+  **configuration** failure (e.g. HTTP Request's `NonRetriableError` for
+  "No endpoint configured"): caught inside that tool's `execute()`,
   returned to the model as a tool-result error object (e.g.
   `{ error: "Request failed with status 500" }`) rather than propagated —
   the LLM continues its loop and can react (retry with different
   arguments, try a different approach, or explain the failure in its final
   answer). This deliberately differs from every other node type's
-  fail-the-whole-run convention: a runtime tool failure is domain
-  information for the agent, not a workflow-execution failure.
-- **Amendment (post-launch task review, 2026-08-16):** a tool node's own
-  *configuration* failure — a `NonRetriableError` the tool would also
-  throw in the main flow, e.g. HTTP Request's "No endpoint configured" —
-  is NOT treated as a retriable tool-result error. No amount of the model
-  retrying with different `$fromAI` arguments can fix a static
-  misconfiguration, so it aborts the run the same way it would for any
-  other node type, rather than letting the model burn its `maxSteps`
-  budget retrying something that can never succeed. Only a tool's runtime
-  failure gets the error-result treatment described above.
+  fail-the-whole-run convention: a tool failure is domain information for
+  the agent, not a workflow-execution failure.
+- **Amendment (post-launch final review, 2026-08-16) — reverted, not
+  adopted:** a prior revision of this section (and a matching hardening
+  attempt in the executor) tried to make a tool's own config failure abort
+  the whole run, on the reasoning that no amount of retrying fixes a
+  static misconfiguration. That's not achievable within `generateText`'s
+  actual behavior: `ai@6.0.31` catches everything a tool's `execute()`
+  throws internally and converts it to a `tool-error` content part — it
+  never propagates out of `generateText`, confirmed by reading the
+  installed package's source (`node_modules/ai/dist/index.mjs`'s tool-call
+  executor) and by an empirical test with `MockLanguageModelV3`. A
+  same-process `throw` inside `execute()` cannot abort the loop; only a
+  more invasive design (buffer the failure and re-check it after
+  `generateText` resolves, aborting even if the model produced a workable
+  answer around it) could, and that's new scope with its own UX
+  trade-offs, not adopted here. Every tool failure — config or runtime —
+  gets the uniform error-result treatment above.
 - The `generateText` call itself throwing (model API error, rate limit,
   etc. that survives `ai-sdk`'s own retry): propagates out of the
   `step.run(agent-run-...)` step normally, which `runWorkflow`'s existing
