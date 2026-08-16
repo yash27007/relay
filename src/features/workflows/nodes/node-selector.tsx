@@ -1,5 +1,6 @@
 "use client"
 import {
+    GitBranchIcon,
     GlobeIcon,
     MousePointerIcon
 } from "lucide-react"
@@ -47,6 +48,12 @@ const executionNodes: NodeTypeOption[] = [
         label: "HTTP Request",
         description: "Makes an HTTP request",
         icon: GlobeIcon
+    },
+    {
+        type: NodeType.IF,
+        label: "IF",
+        description: "Branch the workflow based on a condition",
+        icon: GitBranchIcon
     },
 ];
 
