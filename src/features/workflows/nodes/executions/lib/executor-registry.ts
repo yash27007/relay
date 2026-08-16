@@ -12,6 +12,7 @@ import { AgentExecutor } from "../components/agent/executor";
 import { DeepseekExecutor } from "../components/deepseek/executor";
 import { MistralExecutor } from "../components/mistral/executor";
 import { MoonshotExecutor } from "../components/moonshot/executor";
+import { OllamaExecutor } from "../components/ollama/executor";
 
 export const executorRegistry: Record<NodeType, NodeExecutor> = {
   [NodeType.MANUAL_TRIGGER]: manualTriggerExecutor,
@@ -27,6 +28,7 @@ export const executorRegistry: Record<NodeType, NodeExecutor> = {
   [NodeType.DEEPSEEK]: DeepseekExecutor,
   [NodeType.MISTRAL]: MistralExecutor,
   [NodeType.MOONSHOT]: MoonshotExecutor,
+  [NodeType.OLLAMA]: OllamaExecutor,
 };
 
 export const getExecutor = (type: NodeType): NodeExecutor => {

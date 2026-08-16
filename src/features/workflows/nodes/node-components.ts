@@ -13,6 +13,7 @@ import { AgentNode } from "./executions/components/agent/node";
 import { DeepseekNode } from "./executions/components/deepseek/node";
 import { MistralNode } from "./executions/components/mistral/node";
 import { MoonshotNode } from "./executions/components/moonshot/node";
+import { OllamaNode } from "./executions/components/ollama/node";
 
 export const nodeComponents: Record<NodeType, NodeTypes[string]> = {
   [NodeType.INITIAL]: InitialNode,
@@ -28,6 +29,7 @@ export const nodeComponents: Record<NodeType, NodeTypes[string]> = {
   [NodeType.DEEPSEEK]: DeepseekNode,
   [NodeType.MISTRAL]: MistralNode,
   [NodeType.MOONSHOT]: MoonshotNode,
+  [NodeType.OLLAMA]: OllamaNode,
 } satisfies NodeTypes;
 
 export type RegisteredNodeType = keyof typeof nodeComponents;

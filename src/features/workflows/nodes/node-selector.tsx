@@ -111,6 +111,12 @@ const executionNodes: NodeTypeOption[] = [
         description: "Generate text with a Moonshot/Kimi model",
         icon: "/moonshot.svg"
     },
+    {
+        type: NodeType.OLLAMA,
+        label: "Ollama",
+        description: "Generate text with a self-hosted or Ollama Cloud model",
+        icon: "/ollama.svg"
+    },
 ];
 
 interface NodeSelectorProps {
