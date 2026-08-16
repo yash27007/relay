@@ -170,11 +170,20 @@ export const AgentExecutor: NodeExecutor<AgentNodeData> = async ({
               // transient API error) or the tool's own config validation
               // (e.g. HTTP Request's "No endpoint configured") — becomes
               // domain information the model can react to, rather than
-              // aborting the run. `ai@6.0.31`'s tool-call executor catches
-              // everything this function throws and converts it to a
-              // `tool-error` content part before it ever reaches
-              // `generateText`'s caller — a `throw` inside `execute()`
-              // cannot escape `generateText`.
+              // aborting the run. This is the one deliberate departure
+              // from every other node's fail-the-whole-run convention (see
+              // the plan's Global Constraints).
+              //
+              // A config error can't be distinguished and made to abort
+              // here: `ai@6.0.31`'s tool-call executor catches everything
+              // this function throws and converts it to a `tool-error`
+              // content part before it ever reaches `generateText`'s
+              // caller — a `throw` inside `execute()` cannot escape
+              // `generateText`, confirmed against the installed package's
+              // own source. An earlier revision of this code tried a
+              // `NonRetriableError`-rethrow special case here; it was
+              // dead code (the SDK swallowed it identically either way)
+              // and has been removed.
               return { error: error instanceof Error ? error.message : String(error) };
             }
           },
