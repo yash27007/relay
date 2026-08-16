@@ -1,9 +1,9 @@
 import { NonRetriableError } from "inngest";
 import { inngest } from "./client";
 import { prisma } from "@/lib/db";
-import { topologicalSort } from "./utils";
-import { NodeType } from "@/generated/prisma/enums";
+import { runWorkflow } from "./run-workflow";
 import { getExecutor } from "@/features/workflows/nodes/executions/lib/executor-registry";
+import type { Connection, Node } from "@/generated/prisma/client";
 
 export const executeWorkflow = inngest.createFunction(
   { id: "execute-workflow" },
@@ -14,34 +14,28 @@ export const executeWorkflow = inngest.createFunction(
       throw new NonRetriableError("Workflow ID is missing");
     }
 
-    const sortedNodes = await step.run("prepare-workflow", async () => {
-      const workflow = await prisma.workflow.findUniqueOrThrow({
-        where: {
-          id: workflowID,
-        },
-        include: {
-          nodes: true,
-          connections: true,
-        },
+    const workflow = await step.run("prepare-workflow", async () => {
+      return prisma.workflow.findUniqueOrThrow({
+        where: { id: workflowID },
+        include: { nodes: true, connections: true },
       });
-
-      return topologicalSort(workflow.nodes, workflow.connections);
     });
 
-    let context = event.data.initialData || {};
+    const result = await runWorkflow({
+      // step.run's return type is Jsonify<T>, which turns Date fields into
+      // strings even though the runtime value is a real Date on first run.
+      // runWorkflow/topologicalSort/executors never read createdAt/updatedAt,
+      // so this cast is safe — it only reconciles the type, not the behavior.
+      nodes: workflow.nodes as unknown as Node[],
+      connections: workflow.connections as unknown as Connection[],
+      initialData: event.data.initialData || {},
+      step,
+      getExecutor,
+    });
 
-    for (const node of sortedNodes) {
-      const executor = getExecutor(node.type as NodeType);
-      context = await executor({
-        data: node.data as Record<string, unknown>,
-        nodeId: node.id,
-        context,
-        step,
-      });
-    }
     return {
       workflowID,
-      result: context,
+      result,
     };
   },
 );
