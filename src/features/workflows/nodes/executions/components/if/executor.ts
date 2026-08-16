@@ -2,17 +2,20 @@ import { NonRetriableError } from "inngest";
 import { NodeExecutor } from "../../../executions/types";
 import { resolveTemplate } from "../../lib/resolve-template";
 
-export type IfOperator =
-  | "equals"
-  | "notEquals"
-  | "contains"
-  | "notContains"
-  | "startsWith"
-  | "endsWith"
-  | "greaterThan"
-  | "lessThan"
-  | "isEmpty"
-  | "isNotEmpty";
+export const IF_OPERATORS = [
+  "equals",
+  "notEquals",
+  "contains",
+  "notContains",
+  "startsWith",
+  "endsWith",
+  "greaterThan",
+  "lessThan",
+  "isEmpty",
+  "isNotEmpty",
+] as const;
+
+export type IfOperator = (typeof IF_OPERATORS)[number];
 
 type IfData = {
   value?: string;
@@ -20,7 +23,7 @@ type IfData = {
   compareValue?: string;
 };
 
-const OPERATORS_WITHOUT_COMPARE_VALUE = new Set<IfOperator>(["isEmpty", "isNotEmpty"]);
+export const OPERATORS_WITHOUT_COMPARE_VALUE = new Set<IfOperator>(["isEmpty", "isNotEmpty"]);
 
 function evaluate(operator: IfOperator, value: unknown, compareValue: unknown): boolean {
   switch (operator) {

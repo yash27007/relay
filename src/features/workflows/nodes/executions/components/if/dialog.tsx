@@ -9,26 +9,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import z from "zod";
-
-const OPERATORS = [
-  "equals",
-  "notEquals",
-  "contains",
-  "notContains",
-  "startsWith",
-  "endsWith",
-  "greaterThan",
-  "lessThan",
-  "isEmpty",
-  "isNotEmpty",
-] as const;
-
-const OPERATORS_WITHOUT_COMPARE_VALUE = new Set(["isEmpty", "isNotEmpty"]);
+import { IF_OPERATORS, OPERATORS_WITHOUT_COMPARE_VALUE } from "./executor";
 
 const formSchema = z
   .object({
     value: z.string().min(1, "Value is required"),
-    operator: z.enum(OPERATORS),
+    operator: z.enum(IF_OPERATORS),
     compareValue: z.string().optional(),
   })
   .refine(
@@ -69,7 +55,7 @@ import { useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-const OPERATOR_LABELS: Record<(typeof OPERATORS)[number], string> = {
+export const OPERATOR_LABELS: Record<(typeof IF_OPERATORS)[number], string> = {
   equals: "Equals",
   notEquals: "Does not equal",
   contains: "Contains",
@@ -151,7 +137,7 @@ export const IfNodeDialog = ({ open, onOpenChange, onSubmit, defaultValues = {} 
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {OPERATORS.map((operator) => (
+                      {IF_OPERATORS.map((operator) => (
                         <SelectItem key={operator} value={operator}>
                           {OPERATOR_LABELS[operator]}
                         </SelectItem>

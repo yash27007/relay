@@ -33,4 +33,9 @@ describe("resolveTemplate", () => {
     const context = { a: 1, b: 2 };
     expect(resolveTemplate("{{a}}-{{b}}", context)).toBe("1-2");
   });
+
+  test("ignores surrounding whitespace when detecting whole-string mode", () => {
+    const context = { flag: true };
+    expect(resolveTemplate("  {{flag}}  ", context)).toBe(true);
+  });
 });

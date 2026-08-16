@@ -30,9 +30,10 @@ export function resolveTemplate(
   template: string,
   context: WorkflowContext,
 ): unknown {
-  const matches = [...template.matchAll(TEMPLATE_PATTERN)];
+  const trimmed = template.trim();
+  const matches = [...trimmed.matchAll(TEMPLATE_PATTERN)];
 
-  if (matches.length === 1 && matches[0][0] === template) {
+  if (matches.length === 1 && matches[0][0] === trimmed) {
     return resolvePath(matches[0][1], context);
   }
 

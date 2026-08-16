@@ -10,6 +10,13 @@ type HttpRequestData = {
   body?: string;
 };
 
+function stringifyResolved(value: unknown): string {
+  if (value !== null && typeof value === "object") {
+    return JSON.stringify(value);
+  }
+  return String(value ?? "");
+}
+
 export const HttpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
   nodeId,
   context,
@@ -24,7 +31,7 @@ export const HttpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
     throw new NonRetriableError("HTTP Request Node: Variable name is required");
   }
 
-  const resolvedEndpoint = String(resolveTemplate(data.endpoint, context) ?? "");
+  const resolvedEndpoint = stringifyResolved(resolveTemplate(data.endpoint, context));
 
   let endpointURL: URL;
   try {
@@ -38,7 +45,7 @@ export const HttpRequestExecutor: NodeExecutor<HttpRequestData> = async ({
 
   const resolvedBody =
     data.body !== undefined
-      ? String(resolveTemplate(data.body, context) ?? "")
+      ? stringifyResolved(resolveTemplate(data.body, context))
       : undefined;
 
   const response = await step.run(`http-request-${nodeId}`, async () => {
