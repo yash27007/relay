@@ -27,6 +27,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useEffect, useRef } from "react";
@@ -34,6 +36,7 @@ import z from "zod";
 import Link from "next/link";
 import { AI_PROVIDERS, AI_PROVIDER_TYPES } from "@/features/credentials/lib/ai-providers";
 import { useApiKeysByType } from "@/features/credentials/hooks/use-credentials";
+import { ModelCombobox } from "@/features/credentials/components/model-combobox";
 import type { AgentNodeData } from "./types";
 
 const formSchema = z.object({
@@ -46,8 +49,12 @@ const formSchema = z.object({
     ),
   provider: z.enum(AI_PROVIDER_TYPES),
   credentialId: z.string().min(1, "Credential is required"),
+  model: z.string().optional(),
   systemPrompt: z.string().optional(),
   userPrompt: z.string().min(1, "User prompt is required"),
+  temperature: z.number().min(0).max(2).optional(),
+  maxTokens: z.number().int().positive().optional(),
+  jsonMode: z.boolean().optional(),
   maxSteps: z.number().int().min(1, "Must be at least 1").max(15, "Must be 15 or fewer"),
 });
 
@@ -65,9 +72,13 @@ function toFormDefaults(data: Partial<AgentNodeData> = {}): AgentFormValues {
     variableName: data.variableName || "",
     provider: data.provider || "OPENAI",
     credentialId: data.credentialId || "",
+    model: data.model || "",
     systemPrompt: data.systemPrompt || "",
     userPrompt: data.userPrompt || "",
     maxSteps: data.maxSteps ?? 5,
+    temperature: data.temperature ?? 0.7,
+    maxTokens: data.maxTokens,
+    jsonMode: data.jsonMode ?? false,
   };
 }
 
@@ -105,6 +116,7 @@ export const AgentNodeDialog = ({ open, onOpenChange, onSubmit, defaultValues = 
 
   const watchProvider = form.watch("provider");
   const watchVariableName = form.watch("variableName") || "myAgent";
+  const watchCredentialId = form.watch("credentialId");
 
   // Switching providers invalidates whatever credential was selected (it
   // belongs to the old provider's type) — clear it. Compares against the
@@ -224,6 +236,24 @@ export const AgentNodeDialog = ({ open, onOpenChange, onSubmit, defaultValues = 
             />
             <FormField
               control={form.control}
+              name="model"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Model</FormLabel>
+                  <FormControl>
+                    <ModelCombobox
+                      credentialId={watchCredentialId || undefined}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormDescription>Uses the provider's default model if left unset.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="systemPrompt"
               render={({ field }) => (
                 <FormItem>
@@ -260,6 +290,67 @@ export const AgentNodeDialog = ({ open, onOpenChange, onSubmit, defaultValues = 
                     nodes' output.
                   </FormDescription>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="temperature"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Temperature ({(field.value ?? 0.7).toFixed(1)})</FormLabel>
+                  <FormControl>
+                    <Slider
+                      min={0}
+                      max={2}
+                      step={0.1}
+                      value={[field.value ?? 0.7]}
+                      onValueChange={([next]) => field.onChange(next)}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Lower is more focused and deterministic, higher is more varied.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="maxTokens"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Max Tokens (Optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={1}
+                      placeholder="Provider default"
+                      value={field.value ?? ""}
+                      onChange={(event) =>
+                        field.onChange(event.target.value ? Number(event.target.value) : undefined)
+                      }
+                    />
+                  </FormControl>
+                  <FormDescription>Leave blank to use the provider's own default.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="jsonMode"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between rounded-lg border p-3">
+                  <div className="space-y-0.5">
+                    <FormLabel>JSON Mode</FormLabel>
+                    <FormDescription>
+                      Ask the model to return a JSON-formatted response.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch checked={field.value ?? false} onCheckedChange={field.onChange} />
+                  </FormControl>
                 </FormItem>
               )}
             />
