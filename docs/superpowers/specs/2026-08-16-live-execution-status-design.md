@@ -202,9 +202,23 @@ literal (falling back to `"initial"` when absent): `if-node.tsx`,
 ## Error handling
 
 - A thrown `NonRetriableError` (or any error) inside an executor: `runWorkflow`
-  publishes `"error"` for that node, then re-throws — Inngest's existing
-  retry/failure behavior for the whole run is unchanged, this only adds a
-  status message.
+  publishes `"error"` for that node, then re-throws. The status publish
+  itself is best-effort — its own failure is swallowed rather than allowed
+  to replace the executor's real error as what the run fails with.
+- **Amendment (post-launch whole-branch review, 2026-08-16):** the original
+  claim that publishing "only adds a status message" and leaves Inngest's
+  retry/failure behavior otherwise unchanged is not quite accurate.
+  `realtimeMiddleware()` wraps every `publish()` call made from outside an
+  active step in its own durable `step.run(...)` (confirmed by reading
+  `node_modules/@inngest/realtime/middleware.mjs`) — `runWorkflow` calls
+  `publishStatus` from the function body, not from inside a step, so this
+  applies to every single status publish. Accepted, documented trade-off:
+  each executed node now costs 2 extra durable steps (loading + terminal),
+  roughly tripling total step count per run, with proportional latency and
+  step-quota impact — acceptable at this app's current scale (see the
+  Realtime cost note above; step usage is a separate Inngest quota not yet
+  a concern here). If step volume becomes a problem, revisit by giving
+  publishes unique step ids or by publishing from inside an existing step.
 - A subscription/token error client-side (network issue, expired token):
   surfaced via `useInngestSubscription`'s `error`/`state` return values.
   This spec does not add UI for connection-state display (e.g. a "live" /

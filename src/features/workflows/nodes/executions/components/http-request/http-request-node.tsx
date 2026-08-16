@@ -41,7 +41,7 @@ export const HttpRequestNode = memo((props: NodeProps<HttpRequestNodeType>) => {
         })))
     }
 
-    const nodeStatus = ((props.data as Record<string, any>)?.status as NodeStatus) ?? "initial"
+    const nodeStatus = ((props.data as Record<string, unknown>)?.status as NodeStatus) ?? "initial"
     const nodeData = props.data;
     const description = nodeData?.endpoint
         ? `${nodeData.method || "GET"}: ${nodeData.endpoint}`

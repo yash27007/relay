@@ -53,7 +53,7 @@ export const SwitchNode = memo((props: NodeProps<SwitchNodeType>) => {
     }
   };
 
-  const nodeStatus = ((props.data as Record<string, any>)?.status as NodeStatus) ?? "initial";
+  const nodeStatus = ((props.data as Record<string, unknown>)?.status as NodeStatus) ?? "initial";
   const nodeData = props.data;
   const cases = nodeData?.cases ?? [];
   const description = nodeData?.value

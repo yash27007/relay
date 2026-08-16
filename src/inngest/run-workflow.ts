@@ -68,7 +68,12 @@ export async function runWorkflow({
         userId,
       });
     } catch (error) {
-      await publishStatus(node.id, "error");
+      // Each publish call the middleware wraps in its own durable `step.run`
+      // (we're outside a step here), so it can itself throw after exhausting
+      // retries. Swallow that failure — best effort only — so a broken
+      // status publish never masks the executor's real error, which is what
+      // the run must actually fail with.
+      await publishStatus(node.id, "error").catch(() => {});
       throw error;
     }
     await publishStatus(node.id, "success");

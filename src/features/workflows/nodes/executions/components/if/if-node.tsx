@@ -39,7 +39,7 @@ export const IfNode = memo((props: NodeProps<IfNodeType>) => {
     );
   };
 
-  const nodeStatus = ((props.data as Record<string, any>)?.status as NodeStatus) ?? "initial";
+  const nodeStatus = ((props.data as Record<string, unknown>)?.status as NodeStatus) ?? "initial";
   const nodeData = props.data;
   const description = nodeData?.operator
     ? `${nodeData.value || "value"} ${OPERATOR_LABELS[nodeData.operator]}${

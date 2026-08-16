@@ -49,7 +49,7 @@ export function createAiNode({ providerType, providerLabel, icon }: CreateAiNode
       );
     };
 
-    const nodeStatus = ((props.data as Record<string, any>)?.status as NodeStatus) ?? "initial";
+    const nodeStatus = ((props.data as Record<string, unknown>)?.status as NodeStatus) ?? "initial";
     const nodeData = props.data;
     const description = nodeData?.userPrompt
       ? `{{${nodeData.variableName || "myAi"}.text}}`

@@ -6,7 +6,7 @@ import { MousePointerIcon } from "lucide-react"
 import { ManualTriggerDialog } from "./dialog"
 
 export const ManualTriggerNode = memo((props: NodeProps) => {
-    const nodeStatus = ((props.data as Record<string, any>)?.status as NodeStatus) ?? "initial"
+    const nodeStatus = ((props.data as Record<string, unknown>)?.status as NodeStatus) ?? "initial"
     const [dialogOpen, setDialogOpen] = useState(false)
     const handleOpenSettings = ()=>setDialogOpen(true)
     return (
