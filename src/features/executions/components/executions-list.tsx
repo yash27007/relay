@@ -2,6 +2,7 @@
 import { formatDistanceToNow } from "date-fns";
 import { CheckCircle2Icon, CircleDashedIcon, XCircleIcon } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import type { ComponentType } from "react";
 import {
   EntityContainer,
@@ -20,6 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { RunStatus } from "@/generated/prisma/enums";
+import { ExecutionDetailSheet } from "./execution-detail-sheet";
 import { useExecutionParams } from "../hooks/use-execution-params";
 import { useSuspenseExecutions } from "../hooks/use-executions";
 
@@ -78,6 +80,7 @@ export const ExecutionsError = () => {
 
 export const ExecutionsList = () => {
   const executions = useSuspenseExecutions();
+  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
 
   if (executions.data.items.length === 0) {
     return (
@@ -90,41 +93,55 @@ export const ExecutionsList = () => {
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Workflow</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Started</TableHead>
-          <TableHead>Duration</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {executions.data.items.map((run) => {
-          const meta = STATUS_META[run.status];
-          return (
-            <TableRow key={run.id}>
-              <TableCell>
-                <Link href={`/workflows/${run.workflowId}`} className="hover:underline">
-                  {run.workflow.name}
-                </Link>
-              </TableCell>
-              <TableCell>
-                <Badge variant="outline" className={`gap-1.5 ${meta.className}`}>
-                  <meta.icon className="size-3.5" />
-                  {meta.label}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-muted-foreground">
-                {formatDistanceToNow(run.startedAt, { addSuffix: true })}
-              </TableCell>
-              <TableCell className="text-muted-foreground">
-                {formatRunDuration(run.startedAt, run.completedAt)}
-              </TableCell>
-            </TableRow>
-          );
-        })}
-      </TableBody>
-    </Table>
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Workflow</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Started</TableHead>
+            <TableHead>Duration</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {executions.data.items.map((run) => {
+            const meta = STATUS_META[run.status];
+            return (
+              <TableRow
+                key={run.id}
+                className="cursor-pointer"
+                onClick={() => setSelectedRunId(run.id)}
+              >
+                <TableCell>
+                  <Link
+                    href={`/workflows/${run.workflowId}`}
+                    className="hover:underline"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    {run.workflow.name}
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={`gap-1.5 ${meta.className}`}>
+                    <meta.icon className="size-3.5" />
+                    {meta.label}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {formatDistanceToNow(run.startedAt, { addSuffix: true })}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {formatRunDuration(run.startedAt, run.completedAt)}
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+      <ExecutionDetailSheet
+        runId={selectedRunId}
+        onOpenChange={(open) => !open && setSelectedRunId(null)}
+      />
+    </>
   );
 };
