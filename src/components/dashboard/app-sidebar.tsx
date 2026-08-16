@@ -9,6 +9,7 @@ import {
   PanelLeftIcon,
   StarIcon,
   SunIcon,
+  UserIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -200,6 +201,19 @@ export const AppSidebar = () => {
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Profile"
+              isActive={pathname === "/profile"}
+              asChild
+              className="gap-x-4 h-10 px-4"
+            >
+              <Link href="/profile" prefetch>
+                <UserIcon className="h-4 w-4" />
+                <span>Profile</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip="Billing Portal"
