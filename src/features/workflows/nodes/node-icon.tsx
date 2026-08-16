@@ -29,6 +29,14 @@ interface NodeIconProps {
  * on the canvas than a node using a logo (OpenAI, Agent, ...) — the slot
  * makes every node card the same size regardless of which kind of icon it
  * uses.
+ *
+ * The badge uses an explicit pixel radius (not a semantic `rounded-md`/
+ * `rounded-lg` token): this app's theme sets `--radius: 1rem` (16px), tuned
+ * for normal-sized cards/buttons — on a badge this small (24-28px square),
+ * every semantic token is larger than half the box, so CSS clamps it into
+ * a full circle/pill regardless of which token is picked. A fixed 8px
+ * radius stays a visibly rounded square at this size, independent of the
+ * theme's base radius.
  */
 export function NodeIcon({
   icon: Icon,
@@ -51,7 +59,7 @@ export function NodeIcon({
 
   return (
     <div
-      className="flex items-center justify-center shrink-0 rounded-lg bg-white p-1"
+      className="flex items-center justify-center shrink-0 rounded-[8px] bg-white p-1"
       style={{ width: slotSize, height: slotSize }}
     >
       <Image
