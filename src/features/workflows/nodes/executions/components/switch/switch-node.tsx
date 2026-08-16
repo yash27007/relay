@@ -12,12 +12,16 @@ type SwitchNodeData = Partial<SwitchFormValues>;
 type SwitchNodeType = Node<SwitchNodeData>;
 
 export const SwitchNode = memo((props: NodeProps<SwitchNodeType>) => {
-  const { setNodes } = useReactFlow();
+  const { setNodes, setEdges } = useReactFlow();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const handleOpenSettings = () => setDialogOpen(true);
 
   const handleSubmit = (values: SwitchFormValues) => {
+    const previousCaseIds = new Set((props.data?.cases ?? []).map((c) => c.id));
+    const nextCaseIds = new Set(values.cases.map((c) => c.id));
+    const removedCaseIds = [...previousCaseIds].filter((id) => !nextCaseIds.has(id));
+
     setNodes((nodes) =>
       nodes.map((node) => {
         if (node.id === props.id) {
@@ -32,6 +36,20 @@ export const SwitchNode = memo((props: NodeProps<SwitchNodeType>) => {
         return node;
       }),
     );
+
+    // A case that's been removed from the dialog no longer has an output
+    // handle on the canvas — any edge still wired to it would otherwise
+    // dangle: persisted, unreachable, and with no visual owner.
+    if (removedCaseIds.length > 0) {
+      const removedHandleIds = new Set(
+        removedCaseIds.map((id) => `${props.id}-${id}-source`),
+      );
+      setEdges((edges) =>
+        edges.filter(
+          (edge) => !(edge.source === props.id && removedHandleIds.has(edge.sourceHandle ?? "")),
+        ),
+      );
+    }
   };
 
   const nodeStatus = "initial";
