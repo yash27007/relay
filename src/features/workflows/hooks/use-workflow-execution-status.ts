@@ -34,5 +34,10 @@ export const useWorkflowExecutionStatus = (workflowID: string): NodeStatusMessag
     enabled: true,
   });
 
-  return (freshData ?? []) as unknown as NodeStatusMessage[];
+  // `freshData` entries are the raw @inngest/realtime message envelope
+  // (`{channel, topic, data, ...}`), not the flat `{nodeId, status}` payload
+  // the "status" topic's schema defines — the envelope wraps the published
+  // payload under `.data`. Unwrap it here so this hook's return type matches
+  // what it actually promises.
+  return (freshData ?? []).map((message) => (message as { data: NodeStatusMessage }).data);
 };
