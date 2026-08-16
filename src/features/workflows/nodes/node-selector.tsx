@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/sheet"
 
 import { NodeType } from "@/generated/prisma/enums"
-import Image from "next/image"
+import { NodeIcon } from "./node-icon"
 import { Separator } from "@/components/ui/separator"
 import { useReactFlow } from "@xyflow/react"
 import { useCallback } from "react"
@@ -236,18 +236,7 @@ export function NodeSelector({
                                 onClick={() => handleNodeSelect(nodeType)}
                             >
                                 <div className="flex items-center gap-6 w-full overflow-hidden">
-                                    {typeof Icon === "string" ? (
-                                        <Image
-                                            src={Icon}
-                                            alt={nodeType.label}
-                                            width={20}
-                                            height={20}
-                                            className="size-5 object-contain rounded-sm"
-                                        />
-
-                                    ) : (
-                                        <Icon className="size-5" />
-                                    )}
+                                    <NodeIcon icon={Icon} label={nodeType.label} />
 
                                     <div className="flex flex-col items-start text-left">
                                         <span className="font-medium text-sm">{nodeType.label}</span>
@@ -278,18 +267,7 @@ export function NodeSelector({
                                 onClick={() => handleNodeSelect(nodeType)}
                             >
                                 <div className="flex items-center gap-6 w-full overflow-hidden">
-                                    {typeof Icon === "string" ? (
-                                        <Image
-                                            src={Icon}
-                                            alt={nodeType.label}
-                                            width={20}
-                                            height={20}
-                                            className="size-5 object-contain rounded-sm"
-                                        />
-
-                                    ) : (
-                                        <Icon className="size-5" />
-                                    )}
+                                    <NodeIcon icon={Icon} label={nodeType.label} />
 
                                     <div className="flex flex-col items-start text-left">
                                         <span className="font-medium text-sm">{nodeType.label}</span>

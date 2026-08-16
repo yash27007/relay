@@ -4,14 +4,13 @@ import { type NodeProps, Position, useReactFlow } from "@xyflow/react"
 
 import type { LucideIcon } from "lucide-react"
 
-import Image from "next/image"
-
 import { memo, type ReactNode } from "react"
 
 import { BaseNode, BaseNodeContent } from "../../react-flow/base-node"
 import { BaseHandle } from "../../react-flow/base-handle"
 import { WorkflowNode } from "../../workflow-node"
 import { NodeStatus, NodeStatusIndicator } from "../../react-flow/status-indicator"
+import { NodeIcon } from "../../node-icon"
 interface BaseExecutionNodeProps extends NodeProps {
     icon: LucideIcon | string;
     name: string;
@@ -63,11 +62,7 @@ export const BaseExecutionNode = memo(
 
                     <BaseNode status={status} onDoubleClick={onDoubleClick}>
                         <BaseNodeContent>
-                            {typeof Icon === "string" ? (
-                                <Image src={Icon} alt={name} width={16} height={16} />
-                            ) : (
-                                <Icon className="size-4 text-muted-foreground" />
-                            )}
+                            <NodeIcon icon={Icon} label={name} className="size-4 text-muted-foreground" imageSize={16} />
                             {children}
                             <BaseHandle
                                 id={`${id}-target`}
