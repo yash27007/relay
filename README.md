@@ -10,6 +10,8 @@
   execute live.
 </p>
 
+ > Check out the detailed blog post on <a href='https://yashwanth-aravind-portfolio.vercel.app/blog/relay' target ='_blank' >relay</a>
+
 <p align="center">
   <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-black?logo=next.js" />
   <img alt="React" src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" />
@@ -24,6 +26,7 @@
 
 ## Table of Contents
 
+- [Table of Contents](#table-of-contents)
 - [Overview](#overview)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
@@ -45,7 +48,7 @@
   - [Execution history and replay](#execution-history-and-replay)
 - [Node Reference](#node-reference)
 - [Adding a New Node](#adding-a-new-node)
-- [Testing & Code Quality](#testing--code-quality)
+- [Testing \& Code Quality](#testing--code-quality)
 - [Deployment](#deployment)
 - [Contributing](#contributing)
 - [License](#license)
@@ -79,7 +82,7 @@ the same canvas.
 ## Tech Stack
 
 | Layer | Technology |
-|---|---|
+| --- | --- |
 | Framework | [Next.js 16](https://nextjs.org/) (App Router, Turbopack, React Compiler), [React 19](https://react.dev/) |
 | Language | TypeScript |
 | Canvas | [`@xyflow/react`](https://reactflow.dev/) (React Flow) v12 |
@@ -339,7 +342,7 @@ cp .env.example .env
 ```
 
 | Variable | Required | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | `DATABASE_URL` | ✅ | PostgreSQL connection string, read by Prisma. |
 | `BETTER_AUTH_SECRET` | ✅ | Random secret better-auth uses to sign sessions. |
 | `BETTER_AUTH_URL` | ✅ | The app's own base URL (e.g. `http://localhost:3000`). |
@@ -388,7 +391,7 @@ and payloads — useful when debugging an executor:
 Other useful scripts (see `package.json`):
 
 | Script | What it does |
-|---|---|
+| --- | --- |
 | `bun test` | Run the test suite |
 | `bun lint` | `biome check` |
 | `bun format` | `biome format --write` |
@@ -440,7 +443,7 @@ same editor, same node-output drawer, no separate view to maintain.
 ## Node Reference
 
 | Node | Type | What it does |
-|---|---|---|
+| --- | --- | --- |
 | Trigger Manually | `MANUAL_TRIGGER` | Starts the run when you click **Execute Workflow**. One per workflow. |
 | HTTP Request | `HTTP_REQUEST` | Makes a `GET`/`POST`/`PUT`/`PATCH`/`DELETE` request; endpoint and body support `{{...}}` templates. |
 | IF | `IF` | Evaluates a single condition, routes to a `true` or `false` output — the untaken branch never executes. |
@@ -592,11 +595,13 @@ provider.
 3. **Write tests for logic, not components.** Match the convention in
    [Testing & Code Quality](#testing--code-quality).
 4. **Before opening a PR**, make sure all of these are clean:
+
    ```bash
    bun test
    bunx tsc --noEmit
    bun lint
    ```
+
 5. **Commit messages**: short, imperative summary line (`fix: ...`,
    `feat: ...`, `docs: ...`); explain *why* in the body when the change
    isn't self-evident from the diff.
