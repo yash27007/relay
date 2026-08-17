@@ -65,6 +65,8 @@ export const Editor = ({ workflowID }: { workflowID: string }) => {
     delay: 1000,
   });
 
+  const [runId, setRunId] = useState<string | null>(null);
+
   const statusMessages = useWorkflowExecutionStatus(workflowID);
   useEffect(() => {
     if (statusMessages.length === 0) return;
@@ -78,7 +80,8 @@ export const Editor = ({ workflowID }: { workflowID: string }) => {
     });
   }, [statusMessages]);
 
-  const handleExecuteStart = useCallback(() => {
+  const handleExecuteStart = useCallback((newRunId: string) => {
+    setRunId(newRunId);
     setNodes((currentNodes) =>
       currentNodes.map((node) => ({ ...node, data: { ...node.data, status: "initial" } })),
     );

@@ -4,14 +4,20 @@ import { useExecuteWorkflow } from "../hooks/use-workflows";
 
 interface Props {
   workflowID: string;
-  onExecuteStart?: () => void;
+  onExecuteStart?: (runId: string) => void;
 }
 
 export const ExecuteWorkflowButton = ({ workflowID, onExecuteStart }: Props) => {
   const executeWorkflow = useExecuteWorkflow();
   const handleExecute = () => {
-    onExecuteStart?.();
-    executeWorkflow.mutate({ id: workflowID });
+    executeWorkflow.mutate(
+      { id: workflowID },
+      {
+        onSuccess: (data) => {
+          onExecuteStart?.(data.runId);
+        },
+      },
+    );
   };
   return (
     <Button size="lg" disabled={executeWorkflow.isPending} onClick={handleExecute}>
