@@ -7,6 +7,7 @@ import type {
   WorkflowContext,
 } from "@/features/workflows/nodes/executions/types";
 import { isToolConnection } from "@/features/workflows/nodes/executions/lib/tool-connections";
+import { diffContext } from "./lib/diff-context";
 import { workflowRunChannel } from "./channels/workflow-run";
 import { topologicalSort } from "./utils";
 
@@ -29,6 +30,13 @@ export interface RunWorkflowParams {
    * this file stays free of Prisma/DB concerns entirely, and a
    * bookkeeping failure must never be allowed to change what a run's
    * actual outcome was.
+   *
+   * `input`/`output` are only ever passed on the "success"/"error"
+   * transitions — the "loading" transition has neither yet, and passing
+   * `input` there would be redundant with the same node's later
+   * success/error row, which `upsert` overwrites anyway. `output` is
+   * only ever present on "success" (an error means the executor never
+   * returned a result to diff).
    */
   recordStep?: (event: {
     nodeId: string;
@@ -36,6 +44,8 @@ export interface RunWorkflowParams {
     nodeType: string;
     status: "loading" | "success" | "error";
     error?: string;
+    input?: WorkflowContext;
+    output?: WorkflowContext;
   }) => Promise<void>;
 }
 
@@ -90,14 +100,16 @@ export async function runWorkflow({
   const recordNodeStatus = (
     node: Node,
     status: "loading" | "success" | "error",
-    error?: string,
+    options?: { error?: string; input?: WorkflowContext; output?: WorkflowContext },
   ) =>
     recordStep?.({
       nodeId: node.id,
       nodeName: node.name,
       nodeType: node.type,
       status,
-      error,
+      error: options?.error,
+      input: options?.input,
+      output: options?.output,
     }) ?? Promise.resolve();
 
   let context = initialData;
@@ -106,6 +118,7 @@ export async function runWorkflow({
     if (!reachable.has(node.id)) continue;
 
     const executor = getExecutor(node.type as NodeType);
+    const input = context;
 
     await publishStatus(node.id, "loading");
     await recordNodeStatus(node, "loading").catch(() => {});
@@ -128,13 +141,17 @@ export async function runWorkflow({
       // status publish never masks the executor's real error, which is what
       // the run must actually fail with.
       await publishStatus(node.id, "error").catch(() => {});
-      await recordNodeStatus(node, "error", error instanceof Error ? error.message : String(error)).catch(
-        () => {},
-      );
+      await recordNodeStatus(node, "error", {
+        error: error instanceof Error ? error.message : String(error),
+        input,
+      }).catch(() => {});
       throw error;
     }
     await publishStatus(node.id, "success");
-    await recordNodeStatus(node, "success").catch(() => {});
+    await recordNodeStatus(node, "success", {
+      input,
+      output: diffContext(input, result.context),
+    }).catch(() => {});
 
     context = result.context;
 

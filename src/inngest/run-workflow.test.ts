@@ -66,6 +66,8 @@ function makeFakeRecordStep() {
     nodeType: string;
     status: string;
     error?: string;
+    input?: Record<string, unknown>;
+    output?: Record<string, unknown>;
   }[] = [];
   const recordStep = async (event: {
     nodeId: string;
@@ -73,6 +75,8 @@ function makeFakeRecordStep() {
     nodeType: string;
     status: "loading" | "success" | "error";
     error?: string;
+    input?: Record<string, unknown>;
+    output?: Record<string, unknown>;
   }) => {
     calls.push(event);
   };
@@ -121,9 +125,23 @@ describe("runWorkflow", () => {
 
     expect(stepCalls).toEqual([
       { nodeId: "a", nodeName: "MANUAL_TRIGGER", nodeType: "MANUAL_TRIGGER", status: "loading" },
-      { nodeId: "a", nodeName: "MANUAL_TRIGGER", nodeType: "MANUAL_TRIGGER", status: "success" },
+      {
+        nodeId: "a",
+        nodeName: "MANUAL_TRIGGER",
+        nodeType: "MANUAL_TRIGGER",
+        status: "success",
+        input: {},
+        output: {},
+      },
       { nodeId: "b", nodeName: "HTTP_REQUEST", nodeType: "HTTP_REQUEST", status: "loading" },
-      { nodeId: "b", nodeName: "HTTP_REQUEST", nodeType: "HTTP_REQUEST", status: "success" },
+      {
+        nodeId: "b",
+        nodeName: "HTTP_REQUEST",
+        nodeType: "HTTP_REQUEST",
+        status: "success",
+        input: {},
+        output: {},
+      },
     ]);
   });
 
@@ -152,8 +170,41 @@ describe("runWorkflow", () => {
 
     expect(stepCalls).toEqual([
       { nodeId: "a", nodeName: "MANUAL_TRIGGER", nodeType: "MANUAL_TRIGGER", status: "loading" },
-      { nodeId: "a", nodeName: "MANUAL_TRIGGER", nodeType: "MANUAL_TRIGGER", status: "error", error: "boom" },
+      {
+        nodeId: "a",
+        nodeName: "MANUAL_TRIGGER",
+        nodeType: "MANUAL_TRIGGER",
+        status: "error",
+        error: "boom",
+        input: {},
+      },
     ]);
+  });
+
+  test("recordStep receives the actual context diff as output on success", async () => {
+    const nodes = [makeNode("a", "HTTP_REQUEST")];
+    const connections: ReturnType<typeof makeConnection>[] = [];
+    const { publish } = makeFakePublish();
+    const { recordStep, calls: stepCalls } = makeFakeRecordStep();
+    const addsAVariable: NodeExecutor = async ({ context }) => ({
+      context: { ...context, myHttp: { httpResponse: { status: 200 } } },
+    });
+
+    await runWorkflow({
+      nodes,
+      connections,
+      initialData: { seed: true },
+      step: fakeStep,
+      userId: "test-user",
+      workflowID: "workflow-1",
+      publish,
+      recordStep,
+      getExecutor: () => addsAVariable,
+    });
+
+    const successCall = stepCalls.find((call) => call.status === "success");
+    expect(successCall?.input).toEqual({ seed: true });
+    expect(successCall?.output).toEqual({ myHttp: { httpResponse: { status: 200 } } });
   });
 
   test("recordStep is optional — omitting it changes nothing about execution", async () => {
