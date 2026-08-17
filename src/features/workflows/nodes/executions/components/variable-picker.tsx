@@ -91,11 +91,13 @@ export function VariablePicker({
         <div className="flex max-h-72 flex-col gap-3 overflow-y-auto">
           {ancestors.map((ancestor) => {
             const runStep = run?.steps.find((step) => step.nodeId === ancestor.nodeId);
-            const realPaths =
+            const ancestorOutput =
               runStep?.output && typeof runStep.output === "object"
-                ? flattenKeys(runStep.output).filter((path) =>
-                    path.startsWith(`${ancestor.variableName}.`),
-                  )
+                ? (runStep.output as Record<string, unknown>)[ancestor.variableName]
+                : undefined;
+            const realPaths =
+              ancestorOutput !== undefined
+                ? flattenKeys(ancestorOutput, ancestor.variableName)
                 : [];
             const paths =
               realPaths.length > 0
