@@ -118,6 +118,8 @@ model WorkflowRunStep {
   startedAt   DateTime    @default(now())
   completedAt DateTime?
   error       String?
+  input       Json?
+  output      Json?
 
   @@unique([runId, nodeId])
   @@index([runId])

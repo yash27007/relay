@@ -58,6 +58,8 @@ export type WorkflowRunStepCountAggregateOutputType = {
   startedAt: number
   completedAt: number
   error: number
+  input: number
+  output: number
   _all: number
 }
 
@@ -96,6 +98,8 @@ export type WorkflowRunStepCountAggregateInputType = {
   startedAt?: true
   completedAt?: true
   error?: true
+  input?: true
+  output?: true
   _all?: true
 }
 
@@ -181,6 +185,8 @@ export type WorkflowRunStepGroupByOutputType = {
   startedAt: Date
   completedAt: Date | null
   error: string | null
+  input: runtime.JsonValue | null
+  output: runtime.JsonValue | null
   _count: WorkflowRunStepCountAggregateOutputType | null
   _min: WorkflowRunStepMinAggregateOutputType | null
   _max: WorkflowRunStepMaxAggregateOutputType | null
@@ -214,6 +220,8 @@ export type WorkflowRunStepWhereInput = {
   startedAt?: Prisma.DateTimeFilter<"WorkflowRunStep"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"WorkflowRunStep"> | Date | string | null
   error?: Prisma.StringNullableFilter<"WorkflowRunStep"> | string | null
+  input?: Prisma.JsonNullableFilter<"WorkflowRunStep">
+  output?: Prisma.JsonNullableFilter<"WorkflowRunStep">
   run?: Prisma.XOR<Prisma.WorkflowRunScalarRelationFilter, Prisma.WorkflowRunWhereInput>
 }
 
@@ -227,6 +235,8 @@ export type WorkflowRunStepOrderByWithRelationInput = {
   startedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   error?: Prisma.SortOrderInput | Prisma.SortOrder
+  input?: Prisma.SortOrderInput | Prisma.SortOrder
+  output?: Prisma.SortOrderInput | Prisma.SortOrder
   run?: Prisma.WorkflowRunOrderByWithRelationInput
 }
 
@@ -244,6 +254,8 @@ export type WorkflowRunStepWhereUniqueInput = Prisma.AtLeast<{
   startedAt?: Prisma.DateTimeFilter<"WorkflowRunStep"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"WorkflowRunStep"> | Date | string | null
   error?: Prisma.StringNullableFilter<"WorkflowRunStep"> | string | null
+  input?: Prisma.JsonNullableFilter<"WorkflowRunStep">
+  output?: Prisma.JsonNullableFilter<"WorkflowRunStep">
   run?: Prisma.XOR<Prisma.WorkflowRunScalarRelationFilter, Prisma.WorkflowRunWhereInput>
 }, "id" | "runId_nodeId">
 
@@ -257,6 +269,8 @@ export type WorkflowRunStepOrderByWithAggregationInput = {
   startedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   error?: Prisma.SortOrderInput | Prisma.SortOrder
+  input?: Prisma.SortOrderInput | Prisma.SortOrder
+  output?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.WorkflowRunStepCountOrderByAggregateInput
   _max?: Prisma.WorkflowRunStepMaxOrderByAggregateInput
   _min?: Prisma.WorkflowRunStepMinOrderByAggregateInput
@@ -275,6 +289,8 @@ export type WorkflowRunStepScalarWhereWithAggregatesInput = {
   startedAt?: Prisma.DateTimeWithAggregatesFilter<"WorkflowRunStep"> | Date | string
   completedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"WorkflowRunStep"> | Date | string | null
   error?: Prisma.StringNullableWithAggregatesFilter<"WorkflowRunStep"> | string | null
+  input?: Prisma.JsonNullableWithAggregatesFilter<"WorkflowRunStep">
+  output?: Prisma.JsonNullableWithAggregatesFilter<"WorkflowRunStep">
 }
 
 export type WorkflowRunStepCreateInput = {
@@ -286,6 +302,8 @@ export type WorkflowRunStepCreateInput = {
   startedAt?: Date | string
   completedAt?: Date | string | null
   error?: string | null
+  input?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  output?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   run: Prisma.WorkflowRunCreateNestedOneWithoutStepsInput
 }
 
@@ -299,6 +317,8 @@ export type WorkflowRunStepUncheckedCreateInput = {
   startedAt?: Date | string
   completedAt?: Date | string | null
   error?: string | null
+  input?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  output?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type WorkflowRunStepUpdateInput = {
@@ -310,6 +330,8 @@ export type WorkflowRunStepUpdateInput = {
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  input?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  output?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   run?: Prisma.WorkflowRunUpdateOneRequiredWithoutStepsNestedInput
 }
 
@@ -323,6 +345,8 @@ export type WorkflowRunStepUncheckedUpdateInput = {
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  input?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  output?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type WorkflowRunStepCreateManyInput = {
@@ -335,6 +359,8 @@ export type WorkflowRunStepCreateManyInput = {
   startedAt?: Date | string
   completedAt?: Date | string | null
   error?: string | null
+  input?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  output?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type WorkflowRunStepUpdateManyMutationInput = {
@@ -346,6 +372,8 @@ export type WorkflowRunStepUpdateManyMutationInput = {
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  input?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  output?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type WorkflowRunStepUncheckedUpdateManyInput = {
@@ -358,6 +386,8 @@ export type WorkflowRunStepUncheckedUpdateManyInput = {
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  input?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  output?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type WorkflowRunStepListRelationFilter = {
@@ -385,6 +415,8 @@ export type WorkflowRunStepCountOrderByAggregateInput = {
   startedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
   error?: Prisma.SortOrder
+  input?: Prisma.SortOrder
+  output?: Prisma.SortOrder
 }
 
 export type WorkflowRunStepMaxOrderByAggregateInput = {
@@ -462,6 +494,8 @@ export type WorkflowRunStepCreateWithoutRunInput = {
   startedAt?: Date | string
   completedAt?: Date | string | null
   error?: string | null
+  input?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  output?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type WorkflowRunStepUncheckedCreateWithoutRunInput = {
@@ -473,6 +507,8 @@ export type WorkflowRunStepUncheckedCreateWithoutRunInput = {
   startedAt?: Date | string
   completedAt?: Date | string | null
   error?: string | null
+  input?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  output?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type WorkflowRunStepCreateOrConnectWithoutRunInput = {
@@ -514,6 +550,8 @@ export type WorkflowRunStepScalarWhereInput = {
   startedAt?: Prisma.DateTimeFilter<"WorkflowRunStep"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"WorkflowRunStep"> | Date | string | null
   error?: Prisma.StringNullableFilter<"WorkflowRunStep"> | string | null
+  input?: Prisma.JsonNullableFilter<"WorkflowRunStep">
+  output?: Prisma.JsonNullableFilter<"WorkflowRunStep">
 }
 
 export type WorkflowRunStepCreateManyRunInput = {
@@ -525,6 +563,8 @@ export type WorkflowRunStepCreateManyRunInput = {
   startedAt?: Date | string
   completedAt?: Date | string | null
   error?: string | null
+  input?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  output?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type WorkflowRunStepUpdateWithoutRunInput = {
@@ -536,6 +576,8 @@ export type WorkflowRunStepUpdateWithoutRunInput = {
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  input?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  output?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type WorkflowRunStepUncheckedUpdateWithoutRunInput = {
@@ -547,6 +589,8 @@ export type WorkflowRunStepUncheckedUpdateWithoutRunInput = {
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  input?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  output?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type WorkflowRunStepUncheckedUpdateManyWithoutRunInput = {
@@ -558,6 +602,8 @@ export type WorkflowRunStepUncheckedUpdateManyWithoutRunInput = {
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  input?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  output?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 
@@ -572,6 +618,8 @@ export type WorkflowRunStepSelect<ExtArgs extends runtime.Types.Extensions.Inter
   startedAt?: boolean
   completedAt?: boolean
   error?: boolean
+  input?: boolean
+  output?: boolean
   run?: boolean | Prisma.WorkflowRunDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["workflowRunStep"]>
 
@@ -585,6 +633,8 @@ export type WorkflowRunStepSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
   startedAt?: boolean
   completedAt?: boolean
   error?: boolean
+  input?: boolean
+  output?: boolean
   run?: boolean | Prisma.WorkflowRunDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["workflowRunStep"]>
 
@@ -598,6 +648,8 @@ export type WorkflowRunStepSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
   startedAt?: boolean
   completedAt?: boolean
   error?: boolean
+  input?: boolean
+  output?: boolean
   run?: boolean | Prisma.WorkflowRunDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["workflowRunStep"]>
 
@@ -611,9 +663,11 @@ export type WorkflowRunStepSelectScalar = {
   startedAt?: boolean
   completedAt?: boolean
   error?: boolean
+  input?: boolean
+  output?: boolean
 }
 
-export type WorkflowRunStepOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "runId" | "nodeId" | "nodeName" | "nodeType" | "status" | "startedAt" | "completedAt" | "error", ExtArgs["result"]["workflowRunStep"]>
+export type WorkflowRunStepOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "runId" | "nodeId" | "nodeName" | "nodeType" | "status" | "startedAt" | "completedAt" | "error" | "input" | "output", ExtArgs["result"]["workflowRunStep"]>
 export type WorkflowRunStepInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   run?: boolean | Prisma.WorkflowRunDefaultArgs<ExtArgs>
 }
@@ -639,6 +693,8 @@ export type $WorkflowRunStepPayload<ExtArgs extends runtime.Types.Extensions.Int
     startedAt: Date
     completedAt: Date | null
     error: string | null
+    input: runtime.JsonValue | null
+    output: runtime.JsonValue | null
   }, ExtArgs["result"]["workflowRunStep"]>
   composites: {}
 }
@@ -1072,6 +1128,8 @@ export interface WorkflowRunStepFieldRefs {
   readonly startedAt: Prisma.FieldRef<"WorkflowRunStep", 'DateTime'>
   readonly completedAt: Prisma.FieldRef<"WorkflowRunStep", 'DateTime'>
   readonly error: Prisma.FieldRef<"WorkflowRunStep", 'String'>
+  readonly input: Prisma.FieldRef<"WorkflowRunStep", 'Json'>
+  readonly output: Prisma.FieldRef<"WorkflowRunStep", 'Json'>
 }
     
 

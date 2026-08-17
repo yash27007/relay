@@ -1283,7 +1283,9 @@ export const WorkflowRunStepScalarFieldEnum = {
   status: 'status',
   startedAt: 'startedAt',
   completedAt: 'completedAt',
-  error: 'error'
+  error: 'error',
+  input: 'input',
+  output: 'output'
 } as const
 
 export type WorkflowRunStepScalarFieldEnum = (typeof WorkflowRunStepScalarFieldEnum)[keyof typeof WorkflowRunStepScalarFieldEnum]

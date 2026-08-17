@@ -189,13 +189,6 @@ export type JsonNullableFilterBase<$PrismaModel = never> = {
   not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
 }
 
-export type EnumCredentialTypeFilter<$PrismaModel = never> = {
-  equals?: $Enums.CredentialType | Prisma.EnumCredentialTypeFieldRefInput<$PrismaModel>
-  in?: $Enums.CredentialType[] | Prisma.ListEnumCredentialTypeFieldRefInput<$PrismaModel>
-  notIn?: $Enums.CredentialType[] | Prisma.ListEnumCredentialTypeFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumCredentialTypeFilter<$PrismaModel> | $Enums.CredentialType
-}
-
 export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
 | Prisma.PatchUndefined<
     Prisma.Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
@@ -221,6 +214,13 @@ export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedJsonNullableFilter<$PrismaModel>
   _max?: Prisma.NestedJsonNullableFilter<$PrismaModel>
+}
+
+export type EnumCredentialTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.CredentialType | Prisma.EnumCredentialTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.CredentialType[] | Prisma.ListEnumCredentialTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CredentialType[] | Prisma.ListEnumCredentialTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCredentialTypeFilter<$PrismaModel> | $Enums.CredentialType
 }
 
 export type EnumCredentialTypeWithAggregatesFilter<$PrismaModel = never> = {
@@ -465,13 +465,6 @@ export type NestedEnumRunStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumRunStatusFilter<$PrismaModel>
 }
 
-export type NestedEnumCredentialTypeFilter<$PrismaModel = never> = {
-  equals?: $Enums.CredentialType | Prisma.EnumCredentialTypeFieldRefInput<$PrismaModel>
-  in?: $Enums.CredentialType[] | Prisma.ListEnumCredentialTypeFieldRefInput<$PrismaModel>
-  notIn?: $Enums.CredentialType[] | Prisma.ListEnumCredentialTypeFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedEnumCredentialTypeFilter<$PrismaModel> | $Enums.CredentialType
-}
-
 export type NestedJsonNullableFilter<$PrismaModel = never> =
 | Prisma.PatchUndefined<
     Prisma.Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
@@ -494,6 +487,13 @@ export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
   gt?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
   gte?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel>
   not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
+}
+
+export type NestedEnumCredentialTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.CredentialType | Prisma.EnumCredentialTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.CredentialType[] | Prisma.ListEnumCredentialTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.CredentialType[] | Prisma.ListEnumCredentialTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumCredentialTypeFilter<$PrismaModel> | $Enums.CredentialType
 }
 
 export type NestedEnumCredentialTypeWithAggregatesFilter<$PrismaModel = never> = {
