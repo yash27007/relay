@@ -216,12 +216,15 @@ export const AppSidebar = () => {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
-              tooltip="Billing Portal"
+              tooltip="Billing"
+              isActive={pathname === "/billing"}
+              asChild
               className="gap-x-4 h-10 px-4"
-              onClick={() => {}}
             >
-              <CreditCardIcon className="h-4 w-4" />
-              <span>Billing Portal</span>
+              <Link href="/billing" prefetch>
+                <CreditCardIcon className="h-4 w-4" />
+                <span>Billing</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
