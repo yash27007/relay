@@ -23,14 +23,23 @@ export const workflowsRouter = createTRPCRouter({
       },
     });
 
+    const run = await ctx.prisma.workflowRun.create({
+      data: {
+        workflowId: input.id,
+        userId: ctx.auth.user.id,
+        status: "RUNNING",
+      },
+    });
+
     await inngest.send({
       name:"workflows/execute.workflow",
       data:{
-        workflowID: input.id
+        workflowID: input.id,
+        runId: run.id
       }
     })
-    
-    return workflow
+
+    return { workflow, runId: run.id }
   }),
 
   getRealtimeToken: protectedProcedure

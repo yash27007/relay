@@ -3,16 +3,43 @@ import { inngest } from "./client";
 import { prisma } from "@/lib/db";
 import { runWorkflow } from "./run-workflow";
 import { getExecutor } from "@/features/workflows/nodes/executions/lib/executor-registry";
-import type { Connection, Node } from "@/generated/prisma/client";
+import type { Connection, Node, Prisma } from "@/generated/prisma/client";
 import { RunStatus } from "@/generated/prisma/enums";
+import type { WorkflowContext } from "@/features/workflows/nodes/executions/types";
+
+// Above this size (in serialized characters — a close enough proxy for
+// bytes for this purpose), an input/output snapshot is replaced with a
+// small placeholder instead of being written in full. Comfortably above
+// any real prompt/HTTP-response payload this app currently produces,
+// while still bounding the worst case a pathological response could hit.
+const MAX_SNAPSHOT_CHARS = 128_000;
+
+function safeSnapshot(
+  value: WorkflowContext | undefined,
+): Prisma.InputJsonValue | undefined {
+  if (value === undefined) return undefined;
+  const serialized = JSON.stringify(value);
+  if (serialized.length > MAX_SNAPSHOT_CHARS) {
+    return { truncated: true, byteLength: serialized.length };
+  }
+  // WorkflowContext (Record<string, unknown>) can't be proven JSON-safe
+  // structurally — its values are typed `unknown`, not `InputJsonValue`.
+  // At runtime it always is: the JSON.stringify above already round-trips
+  // it without throwing, so this cast only reconciles the type.
+  return value as Prisma.InputJsonValue;
+}
 
 export const executeWorkflow = inngest.createFunction(
   { id: "execute-workflow" },
   { event: "workflows/execute.workflow" },
   async ({ event, step, publish }) => {
     const workflowID = event.data.workflowID;
+    const runId = event.data.runId;
     if (!workflowID) {
       throw new NonRetriableError("Workflow ID is missing");
+    }
+    if (!runId) {
+      throw new NonRetriableError("Run ID is missing");
     }
 
     const workflow = await step.run("prepare-workflow", async () => {
@@ -22,22 +49,14 @@ export const executeWorkflow = inngest.createFunction(
       });
     });
 
-    const run = await step.run("record-run-start", async () => {
-      return prisma.workflowRun.create({
-        data: {
-          workflowId: workflowID,
-          userId: workflow.userId,
-          status: RunStatus.RUNNING,
-        },
-      });
-    });
-
     const recordStep = async (event: {
       nodeId: string;
       nodeName: string;
       nodeType: string;
       status: "loading" | "success" | "error";
       error?: string;
+      input?: WorkflowContext;
+      output?: WorkflowContext;
     }) => {
       const status =
         event.status === "loading"
@@ -45,26 +64,32 @@ export const executeWorkflow = inngest.createFunction(
           : event.status === "success"
             ? RunStatus.SUCCESS
             : RunStatus.ERROR;
+      const input = safeSnapshot(event.input);
+      const output = safeSnapshot(event.output);
       await step
         .run(`record-step-${event.status}-${event.nodeId}`, async () => {
           await prisma.workflowRunStep.upsert({
-            where: { runId_nodeId: { runId: run.id, nodeId: event.nodeId } },
+            where: { runId_nodeId: { runId, nodeId: event.nodeId } },
             create: {
-              runId: run.id,
+              runId,
               nodeId: event.nodeId,
               nodeName: event.nodeName,
               nodeType: event.nodeType,
               status,
+              input,
+              output,
             },
             update: {
               status,
               completedAt: event.status === "loading" ? undefined : new Date(),
               error: event.error,
+              input,
+              output,
             },
           });
         })
         // Best effort only — a step-recording failure must never mask the
-        // executor's real error. Same rule publishStatus's own error-path
+        // executor's real error. Same rule `publishStatus`'s own error-path
         // publish already follows in run-workflow.ts.
         .catch(() => {});
     };
@@ -93,7 +118,7 @@ export const executeWorkflow = inngest.createFunction(
       await step
         .run("record-run-success", async () => {
           await prisma.workflowRun.update({
-            where: { id: run.id },
+            where: { id: runId },
             data: { status: RunStatus.SUCCESS, completedAt: new Date() },
           });
         })
@@ -107,7 +132,7 @@ export const executeWorkflow = inngest.createFunction(
       await step
         .run("record-run-error", async () => {
           await prisma.workflowRun.update({
-            where: { id: run.id },
+            where: { id: runId },
             data: {
               status: RunStatus.ERROR,
               completedAt: new Date(),
