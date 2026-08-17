@@ -1429,9 +1429,10 @@ describe("findAncestorVariables", () => {
 
     const result = findAncestorVariables(nodes, edges, "http");
 
-    expect(result).toEqual([{ nodeId: "branch", nodeType: "IF", variableName: undefined }].filter(
-      (entry) => entry.variableName,
-    ));
+    // "branch" (IF) has no variableName so it's skipped; its own ancestor
+    // "trigger" (MANUAL_TRIGGER) has none either, so the ancestor list is
+    // empty — walking still happened, it just found nothing to report.
+    expect(result).toEqual([]);
   });
 
   test("a node with no ancestors returns an empty array", () => {
