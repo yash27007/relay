@@ -61,7 +61,7 @@ export const AgentNode = memo((props: NodeProps<AgentNodeType>) => {
         onSettings={handleOpenSettings}
       >
         <NodeStatusIndicator status={nodeStatus} variant="border">
-          <BaseNode status={nodeStatus} onDoubleClick={handleOpenSettings}>
+          <BaseNode id={id} status={nodeStatus} onDoubleClick={handleOpenSettings}>
             <BaseNodeContent>
               <NodeIcon icon={BotIcon} label="AI Agent" className="size-4 text-muted-foreground" />
               <BaseHandle id={`${id}-target`} type="target" position={Position.Left} />

@@ -1,21 +1,35 @@
 import type { ComponentProps } from "react";
+import { useSetAtom } from "jotai";
 
 import { cn } from "@/lib/utils";
 import { type NodeStatus, NodeStatusIndicator } from "./status-indicator";
 import { CheckCircleIcon, LoaderCircleIcon, XCircleIcon } from "lucide-react";
+import { selectedOutputNodeIdAtom } from "../../editor/store/atoms";
 
 interface BaseNodeProps extends ComponentProps<"div"> {
+  /** Required to make the status badge clickable — omit only for a node
+   * type that intentionally never shows output (none exist today). */
+  id?: string;
   status?: NodeStatus;
   statusClassName?: string;
 }
 
 export function BaseNode({
   className,
+  id,
   status,
   statusClassName,
   children,
   ...props
 }: BaseNodeProps) {
+  const setSelectedOutputNodeId = useSetAtom(selectedOutputNodeIdAtom);
+  const canShowOutput = Boolean(id) && (status === "success" || status === "error");
+
+  const handleBadgeClick = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (id) setSelectedOutputNodeId(id);
+  };
+
   const nodeContent = (
     <div
       className={cn(
@@ -35,12 +49,32 @@ export function BaseNode({
       {...props}
     >
       {children}
-      {status === "error" && (
-        <XCircleIcon className="absolute right-1.5 bottom-1.5 size-2 text-red-500 fill-red-100" />
-      )}
-      {status === "success" && (
-        <CheckCircleIcon className="absolute right-1.5 bottom-1.5 size-2 text-emerald-500 fill-emerald-100" />
-      )}
+      {status === "error" &&
+        (canShowOutput ? (
+          <button
+            type="button"
+            onClick={handleBadgeClick}
+            aria-label="View this node's execution output"
+            className="absolute right-1.5 bottom-1.5 cursor-pointer"
+          >
+            <XCircleIcon className="size-2 text-red-500 fill-red-100" />
+          </button>
+        ) : (
+          <XCircleIcon className="absolute right-1.5 bottom-1.5 size-2 text-red-500 fill-red-100" />
+        ))}
+      {status === "success" &&
+        (canShowOutput ? (
+          <button
+            type="button"
+            onClick={handleBadgeClick}
+            aria-label="View this node's execution output"
+            className="absolute right-1.5 bottom-1.5 cursor-pointer"
+          >
+            <CheckCircleIcon className="size-2 text-emerald-500 fill-emerald-100" />
+          </button>
+        ) : (
+          <CheckCircleIcon className="absolute right-1.5 bottom-1.5 size-2 text-emerald-500 fill-emerald-100" />
+        ))}
       {status === "loading" && (
         <LoaderCircleIcon className="absolute right-0.5 bottom-0.5 size-2 text-blue-500 animate-spin" />
       )}

@@ -64,7 +64,7 @@ export const BaseExecutionNode = memo(
                 >
 
 
-                    <BaseNode status={status} onDoubleClick={onDoubleClick}>
+                    <BaseNode id={id} status={status} onDoubleClick={onDoubleClick}>
                         <BaseNodeContent>
                             <NodeIcon icon={Icon} label={name} className="size-4 text-muted-foreground" imageSize={16} />
                             {children}
