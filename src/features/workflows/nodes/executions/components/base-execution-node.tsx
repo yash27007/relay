@@ -4,20 +4,22 @@ import { type NodeProps, Position, useReactFlow } from "@xyflow/react"
 
 import type { LucideIcon } from "lucide-react"
 
-import Image from "next/image"
-
 import { memo, type ReactNode } from "react"
 
 import { BaseNode, BaseNodeContent } from "../../react-flow/base-node"
 import { BaseHandle } from "../../react-flow/base-handle"
 import { WorkflowNode } from "../../workflow-node"
 import { NodeStatus, NodeStatusIndicator } from "../../react-flow/status-indicator"
+import { NodeIcon } from "../../node-icon"
+import { toolSourceHandleId } from "../lib/tool-connections"
 interface BaseExecutionNodeProps extends NodeProps {
     icon: LucideIcon | string;
     name: string;
     description?: string;
     children?: ReactNode;
     status?: NodeStatus;
+    /** Renders a second source handle (bottom) an Agent node can wire into as a tool. */
+    toolCapable?: boolean;
     onSetting?: () => void;
     onDoubleClick?: () => void;
 }
@@ -30,6 +32,7 @@ export const BaseExecutionNode = memo(
         children,
         status = "initial",
         description,
+        toolCapable = false,
         onSetting,
         onDoubleClick
     }: BaseExecutionNodeProps) => {
@@ -61,13 +64,9 @@ export const BaseExecutionNode = memo(
                 >
 
 
-                    <BaseNode status={status} onDoubleClick={onDoubleClick}>
+                    <BaseNode id={id} status={status} onDoubleClick={onDoubleClick}>
                         <BaseNodeContent>
-                            {typeof Icon === "string" ? (
-                                <Image src={Icon} alt={name} width={16} height={16} />
-                            ) : (
-                                <Icon className="size-4 text-muted-foreground" />
-                            )}
+                            <NodeIcon icon={Icon} label={name} className="size-4 text-muted-foreground" imageSize={16} />
                             {children}
                             <BaseHandle
                                 id={`${id}-target`}
@@ -79,6 +78,14 @@ export const BaseExecutionNode = memo(
                                 type="source"
                                 position={Position.Right}
                             />
+                            {toolCapable && (
+                                <BaseHandle
+                                    id={toolSourceHandleId(id)}
+                                    type="source"
+                                    position={Position.Bottom}
+                                    title="Use as an AI tool"
+                                />
+                            )}
                         </BaseNodeContent>
                     </BaseNode>
                 </NodeStatusIndicator>

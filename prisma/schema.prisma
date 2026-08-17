@@ -8,16 +8,17 @@ datasource db {
 }
 
 model User {
-  id            String     @id
+  id            String       @id
   name          String
   email         String
-  emailVerified Boolean    @default(false)
+  emailVerified Boolean      @default(false)
   image         String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
   sessions      Session[]
   accounts      Account[]
   workflows     Workflow[]
+  credentials   Credential[]
 
   @@unique([email])
   @@map("user")
@@ -55,6 +56,7 @@ model Account {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
+  @@unique([userId, providerId])
   @@index([userId])
   @@map("account")
 }
@@ -72,20 +74,102 @@ model Verification {
 }
 
 model Workflow {
-  id          String       @id @default(cuid())
+  id          String        @id @default(cuid())
   name        String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   userId      String
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   nodes       Node[]
   connections Connection[]
+  runs        WorkflowRun[]
+}
+
+enum RunStatus {
+  RUNNING
+  SUCCESS
+  ERROR
+}
+
+model WorkflowRun {
+  id          String            @id @default(cuid())
+  workflowId  String
+  workflow    Workflow          @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  userId      String
+  status      RunStatus         @default(RUNNING)
+  startedAt   DateTime          @default(now())
+  completedAt DateTime?
+  error       String?
+  steps       WorkflowRunStep[]
+
+  @@index([userId, startedAt])
+  @@index([workflowId, startedAt])
+  @@map("workflow_run")
+}
+
+model WorkflowRunStep {
+  id          String      @id @default(cuid())
+  runId       String
+  run         WorkflowRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  nodeId      String
+  nodeName    String
+  nodeType    String
+  status      RunStatus   @default(RUNNING)
+  startedAt   DateTime    @default(now())
+  completedAt DateTime?
+  error       String?
+  input       Json?
+  output      Json?
+
+  @@unique([runId, nodeId])
+  @@index([runId])
+  @@map("workflow_run_step")
+}
+
+enum CredentialType {
+  OPENAI
+  ANTHROPIC
+  GEMINI
+  GROQ
+  DEEPSEEK
+  MISTRAL
+  MOONSHOT
+  OLLAMA
+}
+
+// User-supplied API keys (encrypted at rest), distinct from the OAuth-linked
+// Account model above. Used by node executors that need a plain API key
+// rather than an OAuth token (e.g. AI provider nodes).
+model Credential {
+  id        String         @id @default(cuid())
+  name      String
+  value     String?
+  config    Json?
+  type      CredentialType
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([userId, type])
+  @@map("credential")
 }
 
 enum NodeType {
   INITIAL
   MANUAL_TRIGGER
   HTTP_REQUEST
+  IF
+  SWITCH
+  OPENAI
+  ANTHROPIC
+  GEMINI
+  GROQ
+  AGENT
+  DEEPSEEK
+  MISTRAL
+  MOONSHOT
+  OLLAMA
 }
 
 model Node {

@@ -4,6 +4,8 @@ import { Position, NodeToolbar } from "@xyflow/react";
 import { SettingsIcon, TrashIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { useAtomValue } from "jotai";
+import { editorReadOnlyAtom } from "@/features/workflows/editor/store/atoms";
 
 interface WorkflowNodeProps {
   children: ReactNode;
@@ -22,9 +24,10 @@ export function WorkflowNode({
   name,
   description,
 }: WorkflowNodeProps) {
+  const readOnly = useAtomValue(editorReadOnlyAtom);
   return (
     <>
-      {showToolBar && (
+      {showToolBar && !readOnly && (
         <NodeToolbar>
           <Button size="sm" variant="ghost" onClick={onSettings}>
             <SettingsIcon className="size-4" />

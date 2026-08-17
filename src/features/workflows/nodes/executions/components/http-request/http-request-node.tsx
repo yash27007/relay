@@ -1,31 +1,29 @@
 "use client"
 
 import { Node, NodeProps, useReactFlow } from "@xyflow/react"
+import { useAtomValue } from "jotai";
 
 import { GlobeIcon } from "lucide-react"
 import { memo, useState } from "react";
+import { editorRunIdAtom } from "@/features/workflows/editor/store/atoms";
+import type { NodeStatus } from "../../../react-flow/status-indicator";
 import { BaseExecutionNode } from "../base-execution-node";
-import { HttpRequestFormValues, HttpRequestNodeDialog } from "./dialog";
+import type { HttpRequestData } from "./executor";
+import { HttpRequestNodeDialog, type HttpRequestSubmitValues } from "./dialog";
 
-type HttpRequestNodeData = {
-    variableName?: string;
-    endpoint?: string;
-    method?: "GET" | "PUT" | "POST" | "PATCH" | "DELETE";
-    body?: string;
-};
-
-type HttpRequestNodeType = Node<HttpRequestNodeData>;
+type HttpRequestNodeType = Node<HttpRequestData>;
 
 export const HttpRequestNode = memo((props: NodeProps<HttpRequestNodeType>) => {
 
     const { setNodes } = useReactFlow()
+    const runId = useAtomValue(editorRunIdAtom);
 
 
 
     const [dialogOpen, setDialogOpen] = useState(false)
     const handleOpenSettings = () => setDialogOpen(true)
 
-    const handleSubmit = (values: HttpRequestFormValues) => {
+    const handleSubmit = (values: HttpRequestSubmitValues) => {
         setNodes((nodes) => nodes.map((node => {
             if (node.id === props.id) {
                 return {
@@ -40,7 +38,7 @@ export const HttpRequestNode = memo((props: NodeProps<HttpRequestNodeType>) => {
         })))
     }
 
-    const nodeStatus = "initial"
+    const nodeStatus = ((props.data as Record<string, unknown>)?.status as NodeStatus) ?? "initial"
     const nodeData = props.data;
     const description = nodeData?.endpoint
         ? `${nodeData.method || "GET"}: ${nodeData.endpoint}`
@@ -53,6 +51,8 @@ export const HttpRequestNode = memo((props: NodeProps<HttpRequestNodeType>) => {
                 onOpenChange={setDialogOpen}
                 onSubmit={handleSubmit}
                 defaultValues={nodeData}
+                nodeId={props.id}
+                runId={runId}
             />
             <BaseExecutionNode
                 {...props}
@@ -61,6 +61,7 @@ export const HttpRequestNode = memo((props: NodeProps<HttpRequestNodeType>) => {
                 name="HTTP Request"
                 description={description}
                 status={nodeStatus}
+                toolCapable
                 onSetting={handleOpenSettings}
                 onDoubleClick={handleOpenSettings}
             />

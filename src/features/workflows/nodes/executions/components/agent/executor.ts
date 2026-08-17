@@ -1,0 +1,213 @@
+import { NonRetriableError } from "inngest";
+import { createAnthropic } from "@ai-sdk/anthropic";
+import { createGroq } from "@ai-sdk/groq";
+import { createOpenAI } from "@ai-sdk/openai";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { generateText, Output, stepCountIs, tool, type LanguageModel } from "ai";
+import { prisma } from "@/lib/db";
+import { decrypt } from "@/lib/encryption";
+import type { AIProviderType } from "@/features/credentials/lib/ai-providers";
+import type { NodeExecutor, StepTools } from "../../types";
+import { resolveTemplate } from "../../lib/resolve-template";
+import { buildToolInputSchema } from "./tool-schema";
+import { discoverToolNodes } from "./discover-tools";
+import type { AgentNodeData } from "./types";
+
+// Only OPENAI/ANTHROPIC/GEMINI/GROQ have a real case in createModel's
+// switch below — the other four AI_PROVIDERS members are valid choices
+// in the Agent dialog's provider dropdown (it reuses AI_PROVIDERS
+// wholesale) but hit the `default` branch's NonRetriableError today.
+// Extending createModel to the other four is new scope, not this task.
+const DEFAULT_MODEL_BY_PROVIDER: Record<AIProviderType, string> = {
+  OPENAI: "gpt-4o-mini",
+  ANTHROPIC: "claude-sonnet-5",
+  GEMINI: "gemini-2.0-flash",
+  GROQ: "llama-3.3-70b-versatile",
+  DEEPSEEK: "deepseek-chat",
+  MISTRAL: "mistral-large-latest",
+  MOONSHOT: "kimi-k2-0711-preview",
+  OLLAMA: "llama3.2",
+};
+
+function createModel(provider: AIProviderType, apiKey: string, model: string): LanguageModel {
+  switch (provider) {
+    case "OPENAI":
+      return createOpenAI({ apiKey })(model);
+    case "ANTHROPIC":
+      return createAnthropic({ apiKey })(model);
+    case "GEMINI":
+      return createGoogleGenerativeAI({ apiKey })(model);
+    case "GROQ":
+      return createGroq({ apiKey })(model);
+    default:
+      // AIProviderType is the CredentialType Prisma enum — every member is
+      // handled explicitly above. A default that silently fell through to
+      // one provider's SDK would risk sending a *different* provider's
+      // decrypted API key to the wrong one if the enum ever grows a member
+      // without a matching case here.
+      throw new NonRetriableError(`Agent node: Unsupported model provider "${provider}"`);
+  }
+}
+
+// A tool node's own executor calls step.run(...) internally (e.g.
+// HttpRequestExecutor). Calling that from inside another step.run's
+// callback is illegal (Inngest doesn't support nested steps) — and since
+// the model's choice of which tools to call isn't deterministic, treating
+// each tool call as its OWN independently-memoized Inngest step risks a
+// retry replaying a stale result against a differently-parameterized call.
+// This passthrough sidesteps both problems: it satisfies StepTools'
+// shape enough for a tool node's own `step.run(name, fn)` calls to work,
+// but never registers anything with Inngest — the underlying work (e.g.
+// the HTTP request) runs for real, every time, non-memoized. Cost: an
+// individual tool call isn't independently retried by Inngest on transient
+// failure — ky (used by HttpRequestExecutor) retries transient failures by
+// default, and a persistently failing call becomes an error result the
+// model can react to (see the try/catch below), not a fatal abort.
+const passthroughStep = {
+  run: async <T>(_name: string, fn: () => Promise<T>) => fn(),
+} as unknown as StepTools;
+
+export const AgentExecutor: NodeExecutor<AgentNodeData> = async ({
+  data,
+  nodeId,
+  userId,
+  context,
+  step,
+  getExecutor,
+  allNodes,
+  allConnections,
+}) => {
+  if (!data.variableName) {
+    throw new NonRetriableError("Agent node: Variable name is required");
+  }
+  if (!data.provider) {
+    throw new NonRetriableError("Agent node: Model provider is required");
+  }
+  if (!data.credentialId) {
+    throw new NonRetriableError("Agent node: Credential is required");
+  }
+  if (!data.userPrompt) {
+    throw new NonRetriableError("Agent node: User prompt is required");
+  }
+
+  const variableName = data.variableName;
+  const provider = data.provider;
+  const credentialId = data.credentialId;
+  // `Number()` + `Number.isFinite` guards against a non-numeric or NaN
+  // stored value (the tRPC `update` mutation's node-data schema is loosely
+  // typed, `z.record(z.string(), z.any())`) — a bare `Math.min(Math.max(...))`
+  // on a non-numeric value produces NaN, which never satisfies
+  // `stepCountIs`'s equality check, so the loop would run unbounded.
+  const rawMaxSteps = Number(data.maxSteps);
+  const maxSteps = Number.isFinite(rawMaxSteps)
+    ? Math.min(Math.max(Math.trunc(rawMaxSteps), 1), 15)
+    : 5;
+  const systemPrompt = data.systemPrompt
+    ? String(resolveTemplate(data.systemPrompt, context) ?? "")
+    : undefined;
+  const userPrompt = String(resolveTemplate(data.userPrompt, context) ?? "");
+
+  const toolNodes = discoverToolNodes(nodeId, allNodes, allConnections);
+
+  const credential = await step.run(`agent-get-credential-${nodeId}`, () =>
+    prisma.credential.findFirst({
+      where: { id: credentialId, userId, type: provider },
+      select: { value: true },
+    }),
+  );
+
+  if (!credential) {
+    throw new NonRetriableError("Agent node: Credential not found");
+  }
+  if (!credential.value) {
+    throw new NonRetriableError("Agent node: Credential has no stored key");
+  }
+
+  const text = await step.run(`agent-run-${nodeId}`, async () => {
+    let apiKey: string;
+    try {
+      apiKey = decrypt(credential.value as string);
+    } catch {
+      throw new NonRetriableError("Agent node: Credential could not be decrypted");
+    }
+
+    const model = createModel(provider, apiKey, data.model || DEFAULT_MODEL_BY_PROVIDER[provider]);
+
+    const tools = Object.fromEntries(
+      toolNodes.map(({ node: toolNode, aiTool }) => [
+        toolNode.id,
+        tool({
+          description: aiTool.description,
+          inputSchema: buildToolInputSchema(aiTool.parameters),
+          execute: async (input) => {
+            const toolExecutor = getExecutor(toolNode.type);
+            const toolContext = { ...context, $fromAI: input as Record<string, unknown> };
+            try {
+              const result = await toolExecutor({
+                data: toolNode.data as Record<string, unknown>,
+                nodeId: toolNode.id,
+                context: toolContext,
+                step: passthroughStep,
+                userId,
+                getExecutor,
+                allNodes,
+                allConnections,
+              });
+              const toolVariableName = (toolNode.data as { variableName?: string }).variableName;
+              // Falling back to the whole `result.context` here would leak
+              // every prior node's output (plus this call's own $fromAI
+              // args) to the model provider whenever the tool's variable
+              // resolves to null/undefined — unreachable today (HTTP
+              // Request always writes its variable, and discoverToolNodes
+              // already requires one), but a real footgun for future
+              // tool-capable node types. Fall back to an explicit,
+              // information-free error instead.
+              return toolVariableName
+                ? (result.context[toolVariableName] ?? { error: "Tool produced no output" })
+                : { error: "Tool produced no output" };
+            } catch (error) {
+              // Every tool failure — a runtime error (bad argument,
+              // transient API error) or the tool's own config validation
+              // (e.g. HTTP Request's "No endpoint configured") — becomes
+              // domain information the model can react to, rather than
+              // aborting the run. This is the one deliberate departure
+              // from every other node's fail-the-whole-run convention (see
+              // the plan's Global Constraints).
+              //
+              // A config error can't be distinguished and made to abort
+              // here: `ai@6.0.31`'s tool-call executor catches everything
+              // this function throws and converts it to a `tool-error`
+              // content part before it ever reaches `generateText`'s
+              // caller — a `throw` inside `execute()` cannot escape
+              // `generateText`, confirmed against the installed package's
+              // own source. An earlier revision of this code tried a
+              // `NonRetriableError`-rethrow special case here; it was
+              // dead code (the SDK swallowed it identically either way)
+              // and has been removed.
+              return { error: error instanceof Error ? error.message : String(error) };
+            }
+          },
+        }),
+      ]),
+    );
+
+    const result = await generateText({
+      model,
+      system: systemPrompt,
+      prompt: userPrompt,
+      tools,
+      stopWhen: stepCountIs(maxSteps),
+      temperature: data.temperature,
+      maxOutputTokens: data.maxTokens,
+      output: data.jsonMode ? Output.json() : undefined,
+    });
+    return result.text;
+  });
+
+  return {
+    context: {
+      ...context,
+      [variableName]: { text },
+    },
+  };
+};

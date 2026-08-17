@@ -9,10 +9,44 @@
 * 🟢 You can import this file directly.
 */
 
+export const RunStatus = {
+  RUNNING: 'RUNNING',
+  SUCCESS: 'SUCCESS',
+  ERROR: 'ERROR'
+} as const
+
+export type RunStatus = (typeof RunStatus)[keyof typeof RunStatus]
+
+
+export const CredentialType = {
+  OPENAI: 'OPENAI',
+  ANTHROPIC: 'ANTHROPIC',
+  GEMINI: 'GEMINI',
+  GROQ: 'GROQ',
+  DEEPSEEK: 'DEEPSEEK',
+  MISTRAL: 'MISTRAL',
+  MOONSHOT: 'MOONSHOT',
+  OLLAMA: 'OLLAMA'
+} as const
+
+export type CredentialType = (typeof CredentialType)[keyof typeof CredentialType]
+
+
 export const NodeType = {
   INITIAL: 'INITIAL',
   MANUAL_TRIGGER: 'MANUAL_TRIGGER',
-  HTTP_REQUEST: 'HTTP_REQUEST'
+  HTTP_REQUEST: 'HTTP_REQUEST',
+  IF: 'IF',
+  SWITCH: 'SWITCH',
+  OPENAI: 'OPENAI',
+  ANTHROPIC: 'ANTHROPIC',
+  GEMINI: 'GEMINI',
+  GROQ: 'GROQ',
+  AGENT: 'AGENT',
+  DEEPSEEK: 'DEEPSEEK',
+  MISTRAL: 'MISTRAL',
+  MOONSHOT: 'MOONSHOT',
+  OLLAMA: 'OLLAMA'
 } as const
 
 export type NodeType = (typeof NodeType)[keyof typeof NodeType]

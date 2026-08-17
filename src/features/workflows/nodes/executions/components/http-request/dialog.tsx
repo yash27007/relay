@@ -8,7 +8,18 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
+import { Checkbox } from "@/components/ui/checkbox"
 import z from "zod";
+import type { AiToolConfig } from "../../lib/ai-tool";
+import type { HttpRequestData } from "./executor";
+
+const aiToolParameterSchema = z.object({
+    name: z.string()
+        .min(1, "Parameter name is required")
+        .regex(/^[A-Za-z_$][A-Za-z0-9_$]*$/, "Parameter name must start with a letter or an underscore and contain only letters, numbers, and underscores"),
+    type: z.enum(["string", "number", "boolean"]),
+    description: z.string().min(1, "Description is required"),
+});
 
 const formSchema = z.object({
     variableName: z.string()
@@ -17,16 +28,32 @@ const formSchema = z.object({
     endpoint: z.url("Please enter a valid url"),
     method: z.enum(["GET", "POST", "PUT", "PATCH", "DELETE"]),
     body: z.string()
-        .optional()
-    // .refine()
-})
+        .optional(),
+    aiToolEnabled: z.boolean(),
+    aiToolDescription: z.string().optional(),
+    aiToolParameters: z.array(aiToolParameterSchema),
+}).refine(
+    (data) => !data.aiToolEnabled || Boolean(data.aiToolDescription?.trim()),
+    { message: "Tool description is required when \"Use as AI Tool\" is enabled", path: ["aiToolDescription"] },
+)
 export type HttpRequestFormValues = z.infer<typeof formSchema>
+
+/** The shape actually persisted onto the node's data — `onSubmit` receives this, not the flat form shape above. */
+export interface HttpRequestSubmitValues {
+    variableName: string;
+    endpoint: string;
+    method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+    body?: string;
+    aiTool?: AiToolConfig;
+}
 
 interface Props {
     open: boolean,
     onOpenChange: (open: boolean) => void;
-    onSubmit: (values: z.infer<typeof formSchema>) => void;
-    defaultValues?: Partial<HttpRequestFormValues>;
+    onSubmit: (values: HttpRequestSubmitValues) => void;
+    defaultValues?: Partial<HttpRequestData>;
+    nodeId: string;
+    runId?: string | null;
 };
 import {
     Form,
@@ -48,46 +75,68 @@ import {
 
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form"
-import { useEffect } from "react";
+import { useFieldArray, useForm } from "react-hook-form"
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { PlusIcon, TrashIcon } from "lucide-react";
+import { VariablePicker } from "../variable-picker";
+
+function toFormDefaults(data: Partial<HttpRequestData> = {}): HttpRequestFormValues {
+    return {
+        variableName: data.variableName || "",
+        endpoint: data.endpoint || "",
+        method: data.method || "GET",
+        body: data.body || "",
+        aiToolEnabled: Boolean(data.aiTool),
+        aiToolDescription: data.aiTool?.description || "",
+        aiToolParameters: data.aiTool?.parameters || [],
+    };
+}
 
 export const HttpRequestNodeDialog = ({
     open,
     onOpenChange,
     onSubmit,
-    defaultValues = {}
+    defaultValues = {},
+    nodeId,
+    runId,
 
 }: Props) => {
     const form = useForm<HttpRequestFormValues>({
         resolver: zodResolver(formSchema),
-        defaultValues: {
-            variableName:defaultValues.variableName || "",
-            endpoint: defaultValues.endpoint || "",
-            method: defaultValues.method || "GET",
-            body: defaultValues.body || ""
-        }
+        defaultValues: toFormDefaults(defaultValues),
     })
+
+    const { fields, append, remove } = useFieldArray({
+        control: form.control,
+        name: "aiToolParameters",
+    });
+
+    const [endpointCursor, setEndpointCursor] = useState(0)
+    const [bodyCursor, setBodyCursor] = useState(0)
 
     useEffect(() => {
         if (open) {
-            form.reset({
-                variableName: defaultValues.variableName || "",
-                endpoint: defaultValues.endpoint || "",
-                method: defaultValues.method || "GET",
-                body: defaultValues.body || ""
-            })
+            form.reset(toFormDefaults(defaultValues))
         }
     }, [open, defaultValues, form])
-    
+
     const watchVariableName = form.watch("variableName") || "myApiCall"
 
     const watchMethod = form.watch("method")
     const showBodyField = ["POST", "PUT", "PATCH"].includes(watchMethod)
 
+    const watchAiToolEnabled = form.watch("aiToolEnabled")
+
     const handleSubmit = (values: HttpRequestFormValues) => {
-        onSubmit(values);
+        const { aiToolEnabled, aiToolDescription, aiToolParameters, ...rest } = values;
+        onSubmit({
+            ...rest,
+            aiTool: aiToolEnabled
+                ? { description: aiToolDescription ?? "", parameters: aiToolParameters }
+                : undefined,
+        });
         onOpenChange(false)
     }
 
@@ -161,10 +210,22 @@ export const HttpRequestNodeDialog = ({
                             name="endpoint"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Endpoint URL</FormLabel>
+                                    <div className="flex items-center justify-between">
+                                        <FormLabel>Endpoint URL</FormLabel>
+                                        <VariablePicker
+                                            nodeId={nodeId}
+                                            runId={runId}
+                                            value={field.value}
+                                            cursorPosition={endpointCursor}
+                                            onInsert={field.onChange}
+                                        />
+                                    </div>
                                     <FormControl>
                                         <Input
                                             {...field}
+                                            onSelect={(event) =>
+                                                setEndpointCursor(event.currentTarget.selectionStart ?? 0)
+                                            }
                                             placeholder="https://api.example.com/users/{{httpResponse.data.id}}"
                                         />
                                     </FormControl>
@@ -183,10 +244,22 @@ export const HttpRequestNodeDialog = ({
                                 name="body"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Body</FormLabel>
+                                        <div className="flex items-center justify-between">
+                                            <FormLabel>Body</FormLabel>
+                                            <VariablePicker
+                                                nodeId={nodeId}
+                                                runId={runId}
+                                                value={field.value ?? ""}
+                                                cursorPosition={bodyCursor}
+                                                onInsert={field.onChange}
+                                            />
+                                        </div>
                                         <FormControl>
                                             <Textarea
                                                 {...field}
+                                                onSelect={(event) =>
+                                                    setBodyCursor(event.currentTarget.selectionStart ?? 0)
+                                                }
                                                 placeholder={'{\n  \"name\": \"{{workflowData.userName}}\",\n  \"email\": \"{{workflowData.userEmail}}\",\n  \"role\": \"{{workflowData.userRole}}\",\n  \"status\": \"{{workflowData.userStatus}}\"\n}'}
                                                 className="min-h-[120px] font-mono text-sm"
                                             />
@@ -200,6 +273,122 @@ export const HttpRequestNodeDialog = ({
                                     </FormItem>
                                 )}
                             />
+                        )}
+                        <FormField
+                            control={form.control}
+                            name="aiToolEnabled"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-row items-start gap-3 rounded-md border p-3">
+                                    <FormControl>
+                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                    </FormControl>
+                                    <div className="space-y-1 leading-none">
+                                        <FormLabel>Use as AI Tool</FormLabel>
+                                        <FormDescription>
+                                            Let an Agent node call this HTTP Request with arguments it decides at runtime.
+                                        </FormDescription>
+                                    </div>
+                                </FormItem>
+                            )}
+                        />
+                        {watchAiToolEnabled && (
+                            <>
+                                <FormField
+                                    control={form.control}
+                                    name="aiToolDescription"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Tool Description</FormLabel>
+                                            <FormControl>
+                                                <Textarea
+                                                    {...field}
+                                                    placeholder="Looks up the current weather for a city"
+                                                    className="min-h-[60px]"
+                                                />
+                                            </FormControl>
+                                            <FormDescription>
+                                                Shown to the model so it knows when to call this tool.
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <div className="space-y-3">
+                                    <FormLabel>Parameters</FormLabel>
+                                    <FormDescription>
+                                        Each parameter becomes available in the fields above as {"{{ $fromAI.paramName }}"}. The model fills these in at call time.
+                                    </FormDescription>
+                                    {fields.map((field, index) => (
+                                        <div key={field.id} className="flex items-start gap-2 rounded-md border p-3">
+                                            <div className="flex-1 space-y-2">
+                                                <FormField
+                                                    control={form.control}
+                                                    name={`aiToolParameters.${index}.name`}
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormControl>
+                                                                <Input {...field} placeholder="city" />
+                                                            </FormControl>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                                <FormField
+                                                    control={form.control}
+                                                    name={`aiToolParameters.${index}.type`}
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                                <FormControl>
+                                                                    <SelectTrigger className="w-full">
+                                                                        <SelectValue />
+                                                                    </SelectTrigger>
+                                                                </FormControl>
+                                                                <SelectContent>
+                                                                    <SelectItem value="string">string</SelectItem>
+                                                                    <SelectItem value="number">number</SelectItem>
+                                                                    <SelectItem value="boolean">boolean</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                                <FormField
+                                                    control={form.control}
+                                                    name={`aiToolParameters.${index}.description`}
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormControl>
+                                                                <Input {...field} placeholder="The city to look up" />
+                                                            </FormControl>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => remove(index)}
+                                                aria-label="Remove parameter"
+                                            >
+                                                <TrashIcon className="size-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => append({ name: "", type: "string", description: "" })}
+                                    >
+                                        <PlusIcon className="size-4" />
+                                        Add parameter
+                                    </Button>
+                                </div>
+                            </>
                         )}
                         <DialogFooter className="mt-4">
                             <Button className="w-full" type="submit">Save</Button>

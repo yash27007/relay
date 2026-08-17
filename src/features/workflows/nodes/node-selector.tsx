@@ -1,7 +1,10 @@
 "use client"
 import {
+    BotIcon,
+    GitBranchIcon,
     GlobeIcon,
-    MousePointerIcon
+    MousePointerIcon,
+    SplitIcon
 } from "lucide-react"
 import { createId } from "@paralleldrive/cuid2"
 import type React from "react"
@@ -16,7 +19,7 @@ import {
 } from "@/components/ui/sheet"
 
 import { NodeType } from "@/generated/prisma/enums"
-import Image from "next/image"
+import { NodeIcon } from "./node-icon"
 import { Separator } from "@/components/ui/separator"
 import { useReactFlow } from "@xyflow/react"
 import { useCallback } from "react"
@@ -48,6 +51,72 @@ const executionNodes: NodeTypeOption[] = [
         description: "Makes an HTTP request",
         icon: GlobeIcon
     },
+    {
+        type: NodeType.IF,
+        label: "IF",
+        description: "Branch the workflow based on a condition",
+        icon: GitBranchIcon
+    },
+    {
+        type: NodeType.SWITCH,
+        label: "Switch",
+        description: "Route the workflow to a matching case",
+        icon: SplitIcon
+    },
+    {
+        type: NodeType.AGENT,
+        label: "AI Agent",
+        description: "Run a multi-step AI agent that can call tools",
+        icon: BotIcon
+    },
+    {
+        type: NodeType.OPENAI,
+        label: "OpenAI",
+        description: "Generate text with an OpenAI model",
+        icon: "/openai.svg"
+    },
+    {
+        type: NodeType.ANTHROPIC,
+        label: "Anthropic",
+        description: "Generate text with an Anthropic model",
+        icon: "/anthropic.svg"
+    },
+    {
+        type: NodeType.GEMINI,
+        label: "Gemini",
+        description: "Generate text with a Gemini model",
+        icon: "/gemini.svg"
+    },
+    {
+        type: NodeType.GROQ,
+        label: "Groq",
+        description: "Generate text with a Groq-hosted model",
+        icon: "/groq.svg"
+    },
+    {
+        type: NodeType.DEEPSEEK,
+        label: "DeepSeek",
+        description: "Generate text with a DeepSeek model",
+        icon: "/deepseek.svg"
+    },
+    {
+        type: NodeType.MISTRAL,
+        label: "Mistral",
+        description: "Generate text with a Mistral model",
+        icon: "/mistral.svg"
+    },
+    {
+        type: NodeType.MOONSHOT,
+        label: "Moonshot AI (Kimi)",
+        description: "Generate text with a Moonshot/Kimi model",
+        icon: "/moonshot.svg"
+    },
+    {
+        type: NodeType.OLLAMA,
+        label: "Ollama",
+        description: "Generate text with a self-hosted or Ollama Cloud model",
+        icon: "/ollama.svg"
+    },
 ];
 
 interface NodeSelectorProps {
@@ -55,6 +124,58 @@ interface NodeSelectorProps {
     onOpenChange: (open: boolean) => void;
     children: React.ReactNode;
 };
+
+// Approximate footprint of a node (including its toolbar/label), used only
+// to decide whether two positions would visually overlap — not an exact
+// measurement.
+const NODE_FOOTPRINT = { width: 180, height: 100 };
+
+function overlaps(
+    a: { x: number; y: number },
+    b: { x: number; y: number },
+): boolean {
+    return (
+        Math.abs(a.x - b.x) < NODE_FOOTPRINT.width &&
+        Math.abs(a.y - b.y) < NODE_FOOTPRINT.height
+    );
+}
+
+/**
+ * Returns `desired` if it doesn't overlap any existing node, otherwise
+ * searches outward in a ring pattern for the nearest position that's clear
+ * of every existing node. Falls back to `desired` if nothing clear is found
+ * within a reasonable search radius.
+ */
+function findClearPosition(
+    desired: { x: number; y: number },
+    existing: { x: number; y: number }[],
+): { x: number; y: number } {
+    if (!existing.some((position) => overlaps(position, desired))) {
+        return desired;
+    }
+
+    // Escaping a coincident node needs at least NODE_FOOTPRINT.height (a
+    // straight vertical step) or .width (straight horizontal) — a smaller
+    // ring 1 radius would always land inside the overlap it's trying to
+    // clear, wasting the first pass on guaranteed misses.
+    const ringStep = Math.min(NODE_FOOTPRINT.width, NODE_FOOTPRINT.height);
+    for (let ring = 1; ring <= 10; ring++) {
+        const radius = ring * ringStep;
+        const pointsOnRing = ring * 8;
+        for (let i = 0; i < pointsOnRing; i++) {
+            const angle = (i / pointsOnRing) * 2 * Math.PI;
+            const candidate = {
+                x: desired.x + radius * Math.cos(angle),
+                y: desired.y + radius * Math.sin(angle),
+            };
+            if (!existing.some((position) => overlaps(position, candidate))) {
+                return candidate;
+            }
+        }
+    }
+
+    return desired;
+}
 
 export function NodeSelector({
     open,
@@ -83,10 +204,17 @@ export function NodeSelector({
             const centerY = window.innerHeight / 2;
 
             // Converting window position to flow position and positioning it little bit off the center so that they do not overlap
-            const flowPosition = screenToFlowPosition({
+            const desiredPosition = screenToFlowPosition({
                 x: centerX + (Math.random() - 0.5) * 200,
                 y: centerY + (Math.random() - 0.5) * 200
             });
+
+            // Random jitter alone still collides often when several nodes
+            // land near the same spot — nudge outward from any existing
+            // node until the new one has clear space.
+            const flowPosition = hasInitialTrigger
+                ? desiredPosition
+                : findClearPosition(desiredPosition, nodes.map((node) => node.position));
 
             const newNode = {
                 id: createId(),
@@ -139,16 +267,7 @@ export function NodeSelector({
                                 onClick={() => handleNodeSelect(nodeType)}
                             >
                                 <div className="flex items-center gap-6 w-full overflow-hidden">
-                                    {typeof Icon === "string" ? (
-                                        <Image
-                                            src={Icon}
-                                            alt={nodeType.label}
-                                            className="size-5 object-contain rounded-sm"
-                                        />
-
-                                    ) : (
-                                        <Icon className="size-5" />
-                                    )}
+                                    <NodeIcon icon={Icon} label={nodeType.label} />
 
                                     <div className="flex flex-col items-start text-left">
                                         <span className="font-medium text-sm">{nodeType.label}</span>
@@ -179,16 +298,7 @@ export function NodeSelector({
                                 onClick={() => handleNodeSelect(nodeType)}
                             >
                                 <div className="flex items-center gap-6 w-full overflow-hidden">
-                                    {typeof Icon === "string" ? (
-                                        <Image
-                                            src={Icon}
-                                            alt={nodeType.label}
-                                            className="size-5 object-contain rounded-sm"
-                                        />
-
-                                    ) : (
-                                        <Icon className="size-5" />
-                                    )}
+                                    <NodeIcon icon={Icon} label={nodeType.label} />
 
                                     <div className="flex flex-col items-start text-left">
                                         <span className="font-medium text-sm">{nodeType.label}</span>

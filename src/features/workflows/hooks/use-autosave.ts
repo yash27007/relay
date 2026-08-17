@@ -38,20 +38,35 @@ export const useAutosave = ({
     setAutosaveStatus({ isSaving, lastSaved });
   }, [isSaving, lastSaved, setAutosaveStatus]);
 
+  // `status` on node.data is a transient, per-run execution indicator
+  // (set live by useWorkflowExecutionStatus / reset by handleExecuteStart in
+  // Editor) — it must never be persisted or treated as a "real" edit that
+  // triggers a save. Persisting it would mean merely running a workflow
+  // writes to the workflow's saved definition and reopening the editor
+  // later shows stale borders from whatever run happened last.
+  const stripStatus = (node: Node): Node => {
+    if (!node.data || !("status" in node.data)) return node;
+    const { status: _status, ...rest } = node.data as Record<string, unknown>;
+    return { ...node, data: rest };
+  };
+
   // Store previous values to detect actual changes
-  const prevNodesRef = useRef<string>(JSON.stringify(nodes));
+  const prevNodesRef = useRef<string>(JSON.stringify(nodes.map(stripStatus)));
   const prevEdgesRef = useRef<string>(JSON.stringify(edges));
 
   const save = useCallback(() => {
     updateWorkflow(
       {
         id: workflowId,
-        nodes: nodes.map((node) => ({
-          id: node.id,
-          type: node.type,
-          position: node.position,
-          data: node.data,
-        })),
+        nodes: nodes.map((node) => {
+          const clean = stripStatus(node);
+          return {
+            id: clean.id,
+            type: clean.type,
+            position: clean.position,
+            data: clean.data,
+          };
+        }),
         edges: edges.map((edge) => ({
           id: edge.id,
           source: edge.source,
@@ -77,7 +92,7 @@ export const useAutosave = ({
 
     if (!enabled) return;
 
-    const currentNodes = JSON.stringify(nodes);
+    const currentNodes = JSON.stringify(nodes.map(stripStatus));
     const currentEdges = JSON.stringify(edges);
 
     // Only save if there are actual changes

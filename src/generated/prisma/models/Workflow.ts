@@ -185,6 +185,7 @@ export type WorkflowWhereInput = {
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   nodes?: Prisma.NodeListRelationFilter
   connections?: Prisma.ConnectionListRelationFilter
+  runs?: Prisma.WorkflowRunListRelationFilter
 }
 
 export type WorkflowOrderByWithRelationInput = {
@@ -196,6 +197,7 @@ export type WorkflowOrderByWithRelationInput = {
   user?: Prisma.UserOrderByWithRelationInput
   nodes?: Prisma.NodeOrderByRelationAggregateInput
   connections?: Prisma.ConnectionOrderByRelationAggregateInput
+  runs?: Prisma.WorkflowRunOrderByRelationAggregateInput
 }
 
 export type WorkflowWhereUniqueInput = Prisma.AtLeast<{
@@ -210,6 +212,7 @@ export type WorkflowWhereUniqueInput = Prisma.AtLeast<{
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   nodes?: Prisma.NodeListRelationFilter
   connections?: Prisma.ConnectionListRelationFilter
+  runs?: Prisma.WorkflowRunListRelationFilter
 }, "id">
 
 export type WorkflowOrderByWithAggregationInput = {
@@ -242,6 +245,7 @@ export type WorkflowCreateInput = {
   user: Prisma.UserCreateNestedOneWithoutWorkflowsInput
   nodes?: Prisma.NodeCreateNestedManyWithoutWorkflowInput
   connections?: Prisma.ConnectionCreateNestedManyWithoutWorkflowInput
+  runs?: Prisma.WorkflowRunCreateNestedManyWithoutWorkflowInput
 }
 
 export type WorkflowUncheckedCreateInput = {
@@ -252,6 +256,7 @@ export type WorkflowUncheckedCreateInput = {
   userId: string
   nodes?: Prisma.NodeUncheckedCreateNestedManyWithoutWorkflowInput
   connections?: Prisma.ConnectionUncheckedCreateNestedManyWithoutWorkflowInput
+  runs?: Prisma.WorkflowRunUncheckedCreateNestedManyWithoutWorkflowInput
 }
 
 export type WorkflowUpdateInput = {
@@ -262,6 +267,7 @@ export type WorkflowUpdateInput = {
   user?: Prisma.UserUpdateOneRequiredWithoutWorkflowsNestedInput
   nodes?: Prisma.NodeUpdateManyWithoutWorkflowNestedInput
   connections?: Prisma.ConnectionUpdateManyWithoutWorkflowNestedInput
+  runs?: Prisma.WorkflowRunUpdateManyWithoutWorkflowNestedInput
 }
 
 export type WorkflowUncheckedUpdateInput = {
@@ -272,6 +278,7 @@ export type WorkflowUncheckedUpdateInput = {
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   nodes?: Prisma.NodeUncheckedUpdateManyWithoutWorkflowNestedInput
   connections?: Prisma.ConnectionUncheckedUpdateManyWithoutWorkflowNestedInput
+  runs?: Prisma.WorkflowRunUncheckedUpdateManyWithoutWorkflowNestedInput
 }
 
 export type WorkflowCreateManyInput = {
@@ -378,6 +385,20 @@ export type WorkflowUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.WorkflowScalarWhereInput | Prisma.WorkflowScalarWhereInput[]
 }
 
+export type WorkflowCreateNestedOneWithoutRunsInput = {
+  create?: Prisma.XOR<Prisma.WorkflowCreateWithoutRunsInput, Prisma.WorkflowUncheckedCreateWithoutRunsInput>
+  connectOrCreate?: Prisma.WorkflowCreateOrConnectWithoutRunsInput
+  connect?: Prisma.WorkflowWhereUniqueInput
+}
+
+export type WorkflowUpdateOneRequiredWithoutRunsNestedInput = {
+  create?: Prisma.XOR<Prisma.WorkflowCreateWithoutRunsInput, Prisma.WorkflowUncheckedCreateWithoutRunsInput>
+  connectOrCreate?: Prisma.WorkflowCreateOrConnectWithoutRunsInput
+  upsert?: Prisma.WorkflowUpsertWithoutRunsInput
+  connect?: Prisma.WorkflowWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.WorkflowUpdateToOneWithWhereWithoutRunsInput, Prisma.WorkflowUpdateWithoutRunsInput>, Prisma.WorkflowUncheckedUpdateWithoutRunsInput>
+}
+
 export type WorkflowCreateNestedOneWithoutNodesInput = {
   create?: Prisma.XOR<Prisma.WorkflowCreateWithoutNodesInput, Prisma.WorkflowUncheckedCreateWithoutNodesInput>
   connectOrCreate?: Prisma.WorkflowCreateOrConnectWithoutNodesInput
@@ -413,6 +434,7 @@ export type WorkflowCreateWithoutUserInput = {
   updatedAt?: Date | string
   nodes?: Prisma.NodeCreateNestedManyWithoutWorkflowInput
   connections?: Prisma.ConnectionCreateNestedManyWithoutWorkflowInput
+  runs?: Prisma.WorkflowRunCreateNestedManyWithoutWorkflowInput
 }
 
 export type WorkflowUncheckedCreateWithoutUserInput = {
@@ -422,6 +444,7 @@ export type WorkflowUncheckedCreateWithoutUserInput = {
   updatedAt?: Date | string
   nodes?: Prisma.NodeUncheckedCreateNestedManyWithoutWorkflowInput
   connections?: Prisma.ConnectionUncheckedCreateNestedManyWithoutWorkflowInput
+  runs?: Prisma.WorkflowRunUncheckedCreateNestedManyWithoutWorkflowInput
 }
 
 export type WorkflowCreateOrConnectWithoutUserInput = {
@@ -461,6 +484,62 @@ export type WorkflowScalarWhereInput = {
   userId?: Prisma.StringFilter<"Workflow"> | string
 }
 
+export type WorkflowCreateWithoutRunsInput = {
+  id?: string
+  name: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutWorkflowsInput
+  nodes?: Prisma.NodeCreateNestedManyWithoutWorkflowInput
+  connections?: Prisma.ConnectionCreateNestedManyWithoutWorkflowInput
+}
+
+export type WorkflowUncheckedCreateWithoutRunsInput = {
+  id?: string
+  name: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  userId: string
+  nodes?: Prisma.NodeUncheckedCreateNestedManyWithoutWorkflowInput
+  connections?: Prisma.ConnectionUncheckedCreateNestedManyWithoutWorkflowInput
+}
+
+export type WorkflowCreateOrConnectWithoutRunsInput = {
+  where: Prisma.WorkflowWhereUniqueInput
+  create: Prisma.XOR<Prisma.WorkflowCreateWithoutRunsInput, Prisma.WorkflowUncheckedCreateWithoutRunsInput>
+}
+
+export type WorkflowUpsertWithoutRunsInput = {
+  update: Prisma.XOR<Prisma.WorkflowUpdateWithoutRunsInput, Prisma.WorkflowUncheckedUpdateWithoutRunsInput>
+  create: Prisma.XOR<Prisma.WorkflowCreateWithoutRunsInput, Prisma.WorkflowUncheckedCreateWithoutRunsInput>
+  where?: Prisma.WorkflowWhereInput
+}
+
+export type WorkflowUpdateToOneWithWhereWithoutRunsInput = {
+  where?: Prisma.WorkflowWhereInput
+  data: Prisma.XOR<Prisma.WorkflowUpdateWithoutRunsInput, Prisma.WorkflowUncheckedUpdateWithoutRunsInput>
+}
+
+export type WorkflowUpdateWithoutRunsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutWorkflowsNestedInput
+  nodes?: Prisma.NodeUpdateManyWithoutWorkflowNestedInput
+  connections?: Prisma.ConnectionUpdateManyWithoutWorkflowNestedInput
+}
+
+export type WorkflowUncheckedUpdateWithoutRunsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  nodes?: Prisma.NodeUncheckedUpdateManyWithoutWorkflowNestedInput
+  connections?: Prisma.ConnectionUncheckedUpdateManyWithoutWorkflowNestedInput
+}
+
 export type WorkflowCreateWithoutNodesInput = {
   id?: string
   name: string
@@ -468,6 +547,7 @@ export type WorkflowCreateWithoutNodesInput = {
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutWorkflowsInput
   connections?: Prisma.ConnectionCreateNestedManyWithoutWorkflowInput
+  runs?: Prisma.WorkflowRunCreateNestedManyWithoutWorkflowInput
 }
 
 export type WorkflowUncheckedCreateWithoutNodesInput = {
@@ -477,6 +557,7 @@ export type WorkflowUncheckedCreateWithoutNodesInput = {
   updatedAt?: Date | string
   userId: string
   connections?: Prisma.ConnectionUncheckedCreateNestedManyWithoutWorkflowInput
+  runs?: Prisma.WorkflowRunUncheckedCreateNestedManyWithoutWorkflowInput
 }
 
 export type WorkflowCreateOrConnectWithoutNodesInput = {
@@ -502,6 +583,7 @@ export type WorkflowUpdateWithoutNodesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutWorkflowsNestedInput
   connections?: Prisma.ConnectionUpdateManyWithoutWorkflowNestedInput
+  runs?: Prisma.WorkflowRunUpdateManyWithoutWorkflowNestedInput
 }
 
 export type WorkflowUncheckedUpdateWithoutNodesInput = {
@@ -511,6 +593,7 @@ export type WorkflowUncheckedUpdateWithoutNodesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   connections?: Prisma.ConnectionUncheckedUpdateManyWithoutWorkflowNestedInput
+  runs?: Prisma.WorkflowRunUncheckedUpdateManyWithoutWorkflowNestedInput
 }
 
 export type WorkflowCreateWithoutConnectionsInput = {
@@ -520,6 +603,7 @@ export type WorkflowCreateWithoutConnectionsInput = {
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutWorkflowsInput
   nodes?: Prisma.NodeCreateNestedManyWithoutWorkflowInput
+  runs?: Prisma.WorkflowRunCreateNestedManyWithoutWorkflowInput
 }
 
 export type WorkflowUncheckedCreateWithoutConnectionsInput = {
@@ -529,6 +613,7 @@ export type WorkflowUncheckedCreateWithoutConnectionsInput = {
   updatedAt?: Date | string
   userId: string
   nodes?: Prisma.NodeUncheckedCreateNestedManyWithoutWorkflowInput
+  runs?: Prisma.WorkflowRunUncheckedCreateNestedManyWithoutWorkflowInput
 }
 
 export type WorkflowCreateOrConnectWithoutConnectionsInput = {
@@ -554,6 +639,7 @@ export type WorkflowUpdateWithoutConnectionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutWorkflowsNestedInput
   nodes?: Prisma.NodeUpdateManyWithoutWorkflowNestedInput
+  runs?: Prisma.WorkflowRunUpdateManyWithoutWorkflowNestedInput
 }
 
 export type WorkflowUncheckedUpdateWithoutConnectionsInput = {
@@ -563,6 +649,7 @@ export type WorkflowUncheckedUpdateWithoutConnectionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   nodes?: Prisma.NodeUncheckedUpdateManyWithoutWorkflowNestedInput
+  runs?: Prisma.WorkflowRunUncheckedUpdateManyWithoutWorkflowNestedInput
 }
 
 export type WorkflowCreateManyUserInput = {
@@ -579,6 +666,7 @@ export type WorkflowUpdateWithoutUserInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   nodes?: Prisma.NodeUpdateManyWithoutWorkflowNestedInput
   connections?: Prisma.ConnectionUpdateManyWithoutWorkflowNestedInput
+  runs?: Prisma.WorkflowRunUpdateManyWithoutWorkflowNestedInput
 }
 
 export type WorkflowUncheckedUpdateWithoutUserInput = {
@@ -588,6 +676,7 @@ export type WorkflowUncheckedUpdateWithoutUserInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   nodes?: Prisma.NodeUncheckedUpdateManyWithoutWorkflowNestedInput
   connections?: Prisma.ConnectionUncheckedUpdateManyWithoutWorkflowNestedInput
+  runs?: Prisma.WorkflowRunUncheckedUpdateManyWithoutWorkflowNestedInput
 }
 
 export type WorkflowUncheckedUpdateManyWithoutUserInput = {
@@ -605,11 +694,13 @@ export type WorkflowUncheckedUpdateManyWithoutUserInput = {
 export type WorkflowCountOutputType = {
   nodes: number
   connections: number
+  runs: number
 }
 
 export type WorkflowCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   nodes?: boolean | WorkflowCountOutputTypeCountNodesArgs
   connections?: boolean | WorkflowCountOutputTypeCountConnectionsArgs
+  runs?: boolean | WorkflowCountOutputTypeCountRunsArgs
 }
 
 /**
@@ -636,6 +727,13 @@ export type WorkflowCountOutputTypeCountConnectionsArgs<ExtArgs extends runtime.
   where?: Prisma.ConnectionWhereInput
 }
 
+/**
+ * WorkflowCountOutputType without action
+ */
+export type WorkflowCountOutputTypeCountRunsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.WorkflowRunWhereInput
+}
+
 
 export type WorkflowSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -646,6 +744,7 @@ export type WorkflowSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   nodes?: boolean | Prisma.Workflow$nodesArgs<ExtArgs>
   connections?: boolean | Prisma.Workflow$connectionsArgs<ExtArgs>
+  runs?: boolean | Prisma.Workflow$runsArgs<ExtArgs>
   _count?: boolean | Prisma.WorkflowCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["workflow"]>
 
@@ -680,6 +779,7 @@ export type WorkflowInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   nodes?: boolean | Prisma.Workflow$nodesArgs<ExtArgs>
   connections?: boolean | Prisma.Workflow$connectionsArgs<ExtArgs>
+  runs?: boolean | Prisma.Workflow$runsArgs<ExtArgs>
   _count?: boolean | Prisma.WorkflowCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type WorkflowIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -695,6 +795,7 @@ export type $WorkflowPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     user: Prisma.$UserPayload<ExtArgs>
     nodes: Prisma.$NodePayload<ExtArgs>[]
     connections: Prisma.$ConnectionPayload<ExtArgs>[]
+    runs: Prisma.$WorkflowRunPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1099,6 +1200,7 @@ export interface Prisma__WorkflowClient<T, Null = never, ExtArgs extends runtime
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   nodes<T extends Prisma.Workflow$nodesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workflow$nodesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NodePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   connections<T extends Prisma.Workflow$connectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workflow$connectionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ConnectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  runs<T extends Prisma.Workflow$runsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workflow$runsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkflowRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1574,6 +1676,30 @@ export type Workflow$connectionsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.ConnectionScalarFieldEnum | Prisma.ConnectionScalarFieldEnum[]
+}
+
+/**
+ * Workflow.runs
+ */
+export type Workflow$runsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WorkflowRun
+   */
+  select?: Prisma.WorkflowRunSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the WorkflowRun
+   */
+  omit?: Prisma.WorkflowRunOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WorkflowRunInclude<ExtArgs> | null
+  where?: Prisma.WorkflowRunWhereInput
+  orderBy?: Prisma.WorkflowRunOrderByWithRelationInput | Prisma.WorkflowRunOrderByWithRelationInput[]
+  cursor?: Prisma.WorkflowRunWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.WorkflowRunScalarFieldEnum | Prisma.WorkflowRunScalarFieldEnum[]
 }
 
 /**
