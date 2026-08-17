@@ -1,6 +1,11 @@
 "use client";
 
 import {
+  motion,
+  useReducedMotion,
+  type Variants,
+} from "framer-motion";
+import {
   BotIcon,
   GitBranchIcon,
   GlobeIcon,
@@ -50,7 +55,49 @@ const DIFFERENTIATORS = [
   },
 ] as const;
 
+// Scroll-triggered reveal for the two below-the-fold groups below — the
+// only parts of the landing page with no motion at all. Hero and
+// WorkflowAnimation are deliberately CSS-only (see workflow-animation.tsx);
+// this is the one spot where framer-motion earns its keep, since a
+// whileInView reveal isn't practical in pure CSS. `useReducedMotion` mirrors
+// the "animation: none" behavior those other components use: reduced-motion
+// users get the final state immediately, no transform, no stagger.
+function useRevealVariants(
+  staggerChildren: number,
+  duration: number,
+) {
+  const prefersReducedMotion = useReducedMotion();
+
+  const container: Variants = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: prefersReducedMotion ? 0 : staggerChildren,
+      },
+    },
+  };
+
+  const item: Variants = {
+    hidden: prefersReducedMotion
+      ? { opacity: 1, y: 0 }
+      : { opacity: 0, y: 8 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: prefersReducedMotion ? 0 : duration,
+        ease: [0.16, 1, 0.3, 1],
+      },
+    },
+  };
+
+  return { container, item };
+}
+
 export function Features() {
+  const chip = useRevealVariants(0.035, 0.35);
+  const card = useRevealVariants(0.08, 0.4);
+
   return (
     <section className="border-b bg-card/30 px-6 py-20">
       <div className="mx-auto max-w-6xl">
@@ -67,10 +114,17 @@ export function Features() {
           </p>
         </div>
 
-        <div className="mt-10 flex flex-wrap gap-2.5">
+        <motion.div
+          className="mt-10 flex flex-wrap gap-2.5"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={chip.container}
+        >
           {NODE_SHELF.map((node) => (
-            <div
+            <motion.div
               key={node.label}
+              variants={chip.item}
               className="flex items-center gap-2 rounded-md border bg-card py-2 pr-4 pl-2.5 transition-colors hover:border-primary"
             >
               <NodeIcon
@@ -81,14 +135,21 @@ export function Features() {
               <span className="font-mono-plex text-xs text-foreground">
                 {node.label}
               </span>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
-        <div className="mt-16 grid gap-6 sm:grid-cols-3">
+        <motion.div
+          className="mt-16 grid gap-6 sm:grid-cols-3"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          variants={card.container}
+        >
           {DIFFERENTIATORS.map((feature) => (
-            <div
+            <motion.div
               key={feature.title}
+              variants={card.item}
               className="rounded-md border bg-card p-6"
             >
               <div className="mb-4 flex size-9 items-center justify-center rounded-md bg-primary/10">
@@ -100,9 +161,9 @@ export function Features() {
               <p className="mt-1.5 text-sm text-muted-foreground">
                 {feature.description}
               </p>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

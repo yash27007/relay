@@ -1,123 +1,216 @@
 "use client";
 
+import {
+  type EdgeTypes,
+  type NodeTypes,
+  ReactFlow,
+  ReactFlowProvider,
+} from "@xyflow/react";
 import { GlobeIcon, MousePointerIcon } from "lucide-react";
-import { NodeIcon } from "@/features/workflows/nodes/node-icon";
+import { useEffect, useMemo, useRef, useState } from "react";
+import "@xyflow/react/dist/style.css";
+
+import type { NodeStatus } from "@/features/workflows/nodes/react-flow/status-indicator";
+import {
+  LandingDemoEdge,
+  type LandingDemoEdgeType,
+} from "./landing-demo-edge";
+import {
+  LandingDemoNode,
+  type LandingDemoNodeType,
+} from "./landing-demo-node";
+
+const nodeTypes: NodeTypes = { landingDemo: LandingDemoNode };
+const edgeTypes: EdgeTypes = { landingDemo: LandingDemoEdge };
 
 const STEPS = [
-  { label: "Trigger", icon: MousePointerIcon, delay: "0s" },
-  { label: "HTTP Request", icon: GlobeIcon, delay: "2s" },
-  { label: "Gemini", icon: "/gemini.svg", delay: "4s" },
+  { id: "trigger", label: "Trigger", icon: MousePointerIcon },
+  { id: "http", label: "HTTP Request", icon: GlobeIcon },
+  { id: "gemini", label: "Gemini", icon: "/gemini.svg" },
 ] as const;
 
-const LINE_DELAYS = ["0.5s", "2.5s"] as const;
+const X_GAP = 210;
+
+// One 6s loop, mirroring the timing the original CSS mock used: each node
+// takes its turn "loading" then settles "success", and the edge feeding it
+// lights up for that same window. Phases are relative ms from cycle start;
+// the first phase resets everything to "initial" so a fresh cycle never
+// starts overlapping the tail end of the previous one.
+type Phase = {
+  atMs: number;
+  statuses: readonly NodeStatus[];
+  edgesActive: readonly boolean[];
+};
+
+const CYCLE_MS = 6000;
+
+const TIMELINE: readonly Phase[] = [
+  {
+    atMs: 0,
+    statuses: ["initial", "initial", "initial"],
+    edgesActive: [false, false],
+  },
+  {
+    atMs: 150,
+    statuses: ["loading", "initial", "initial"],
+    edgesActive: [false, false],
+  },
+  {
+    atMs: 850,
+    statuses: ["success", "initial", "initial"],
+    edgesActive: [true, false],
+  },
+  {
+    atMs: 2000,
+    statuses: ["success", "loading", "initial"],
+    edgesActive: [true, false],
+  },
+  {
+    atMs: 2700,
+    statuses: ["success", "success", "initial"],
+    edgesActive: [false, true],
+  },
+  {
+    atMs: 4000,
+    statuses: ["success", "success", "loading"],
+    edgesActive: [false, true],
+  },
+  {
+    atMs: 4700,
+    statuses: ["success", "success", "success"],
+    edgesActive: [false, false],
+  },
+];
+
+// The settled, no-motion state shown to prefers-reduced-motion users:
+// everything already succeeded, wiring visible, nothing pulsing — the same
+// "show the finished state, skip the motion" choice hero.tsx and the real
+// WorkflowAnimation keyframes already make elsewhere on this page.
+const STILL_PHASE: Phase = TIMELINE[TIMELINE.length - 1];
+
+function useReducedMotion() {
+  const [reduced, setReduced] = useState(true);
+  useEffect(() => {
+    const query = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    );
+    setReduced(query.matches);
+    const onChange = (e: MediaQueryListEvent) =>
+      setReduced(e.matches);
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, []);
+  return reduced;
+}
+
+function useDemoTimeline() {
+  const reducedMotion = useReducedMotion();
+  const [phase, setPhase] = useState<Phase>(STILL_PHASE);
+  const timeouts = useRef<number[]>([]);
+
+  useEffect(() => {
+    if (reducedMotion) {
+      setPhase(STILL_PHASE);
+      return;
+    }
+
+    const runCycle = () => {
+      timeouts.current.forEach(clearTimeout);
+      timeouts.current = TIMELINE.map((step) =>
+        window.setTimeout(() => setPhase(step), step.atMs),
+      );
+    };
+
+    runCycle();
+    const interval = window.setInterval(runCycle, CYCLE_MS);
+
+    return () => {
+      timeouts.current.forEach(clearTimeout);
+      window.clearInterval(interval);
+    };
+  }, [reducedMotion]);
+
+  return phase;
+}
 
 /**
- * A looping diagram of a workflow executing, built from the same visual
- * primitives the real editor uses — not an abstract illustration. Node
- * cards share BaseNode's `rounded-md` radius and get the same left/right
- * handle dots BaseHandle renders; connectors are SVG paths with rounded
- * end-caps rather than plain <line>s, drawn with the same horizontal-
- * tangent geometry @xyflow/react's default bezier edge computes — which,
- * for two handles at the same height (as here), correctly resolves to a
- * straight line, exactly like the real canvas renders this layout. The
- * pulse that travels along each connector, and the ring each node glows
- * with, echo the same loading/success visual language the editor uses
- * for live execution — looping here for show instead of reporting a
- * real run.
- *
- * Pure CSS/SVG, no client JS, no animation library. Every animated
- * element shares one 6s duration + infinite iteration; each element's
- * own animation-delay is what staggers it within that shared cycle, so
- * the whole diagram stays in sync loop after loop:
- *   t=0.0s  node 0 (Trigger) glows
- *   t=0.5s  line 0->1 pulse travels (~1.3s)
- *   t=2.0s  node 1 (HTTP Request) glows
- *   t=2.5s  line 1->2 pulse travels (~1.3s)
- *   t=4.0s  node 2 (Gemini) glows
- *   t=4.4s..6.0s  pause, then the 6s cycle repeats
+ * A looping diagram of a workflow executing, rendered by the app's real
+ * xyflow canvas — nodes are BaseNode/BaseHandle, statuses drive the same
+ * loading/success visuals a live run produces, edges are xyflow's own
+ * bezier path helper. Read-only: dragging, connecting, and scroll/pinch
+ * zoom are all disabled, this is a demo playing on loop, not an editor.
  */
 export function WorkflowAnimation() {
+  const phase = useDemoTimeline();
+
+  const nodes: LandingDemoNodeType[] = useMemo(
+    () =>
+      STEPS.map((step, index) => ({
+        id: step.id,
+        type: "landingDemo",
+        position: { x: index * X_GAP, y: 0 },
+        draggable: false,
+        selectable: false,
+        connectable: false,
+        focusable: false,
+        data: {
+          label: step.label,
+          icon: step.icon,
+          status: phase.statuses[index],
+          showTarget: index > 0,
+          showSource: index < STEPS.length - 1,
+        },
+      })),
+    [phase],
+  );
+
+  const edges: LandingDemoEdgeType[] = useMemo(
+    () =>
+      STEPS.slice(0, -1).map((step, index) => ({
+        id: `${step.id}-${STEPS[index + 1].id}`,
+        source: step.id,
+        target: STEPS[index + 1].id,
+        type: "landingDemo",
+        selectable: false,
+        focusable: false,
+        data: { active: phase.edgesActive[index] },
+      })),
+    [phase],
+  );
+
   return (
-    <div className="w-full">
+    <div className="h-44 w-full" aria-hidden="true">
       <style>{`
-        @keyframes relay-node-glow {
-          0%, 8%, 100% { box-shadow: 0 0 0 0 transparent; border-color: var(--color-border); }
-          4% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--color-primary) 25%, transparent); border-color: var(--color-primary); }
+        .relay-demo-edge-pulse {
+          stroke-dasharray: 8 6;
+          animation: relay-demo-edge-flow 0.6s linear infinite;
         }
-        @keyframes relay-line-flow {
-          0%, 100% { stroke-dashoffset: 60; opacity: 0; }
-          2% { opacity: 1; }
-          22% { stroke-dashoffset: -60; opacity: 1; }
-          24% { opacity: 0; }
-        }
-        .relay-node { animation: relay-node-glow 6s ease-in-out infinite; }
-        .relay-line { animation: relay-line-flow 6s ease-in-out infinite; }
-        @media (prefers-reduced-motion: reduce) {
-          .relay-node, .relay-line { animation: none; }
-          .relay-node { border-color: var(--color-primary); }
-          .relay-line { opacity: 0; }
+        @keyframes relay-demo-edge-flow {
+          to { stroke-dashoffset: -14; }
         }
       `}</style>
-      <div className="flex items-center">
-        {STEPS.map((stepItem, index) => (
-          <div
-            key={stepItem.label}
-            className="flex flex-1 items-center last:flex-none"
-          >
-            <div
-              className="relay-node relative flex shrink-0 flex-col items-center gap-2 rounded-md border bg-card p-4"
-              style={{ animationDelay: stepItem.delay }}
-            >
-              {index > 0 && (
-                <span
-                  aria-hidden="true"
-                  className="absolute top-1/2 -left-[5px] size-[9px] -translate-y-1/2 rounded-full border bg-muted dark:bg-secondary"
-                />
-              )}
-              <NodeIcon
-                icon={stepItem.icon}
-                label={stepItem.label}
-                imageSize={24}
-              />
-              <span className="font-mono-plex text-[11px] whitespace-nowrap text-muted-foreground">
-                {stepItem.label}
-              </span>
-              {index < STEPS.length - 1 && (
-                <span
-                  aria-hidden="true"
-                  className="absolute top-1/2 -right-[5px] size-[9px] -translate-y-1/2 rounded-full border bg-muted dark:bg-secondary"
-                />
-              )}
-            </div>
-            {index < STEPS.length - 1 && (
-              <svg
-                aria-hidden="true"
-                className="mx-1 hidden flex-1 sm:block"
-                viewBox="0 0 100 32"
-                preserveAspectRatio="none"
-                style={{ height: 32, minWidth: 48 }}
-              >
-                <path
-                  d="M 0 16 C 35 16, 65 16, 100 16"
-                  fill="none"
-                  stroke="var(--color-border)"
-                  strokeWidth="2"
-                />
-                <path
-                  className="relay-line"
-                  d="M 0 16 C 35 16, 65 16, 100 16"
-                  fill="none"
-                  stroke="var(--color-primary)"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeDasharray="10 50"
-                  style={{ animationDelay: LINE_DELAYS[index] }}
-                />
-              </svg>
-            )}
-          </div>
-        ))}
-      </div>
+      <ReactFlowProvider>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          fitView
+          fitViewOptions={{ padding: 0.25 }}
+          proOptions={{ hideAttribution: true }}
+          nodesDraggable={false}
+          nodesConnectable={false}
+          nodesFocusable={false}
+          edgesFocusable={false}
+          elementsSelectable={false}
+          panOnDrag={false}
+          panOnScroll={false}
+          zoomOnScroll={false}
+          zoomOnPinch={false}
+          zoomOnDoubleClick={false}
+          preventScrolling={false}
+        />
+      </ReactFlowProvider>
     </div>
   );
 }
