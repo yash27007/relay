@@ -114,7 +114,7 @@ export const ExecutionsList = () => {
               >
                 <TableCell>
                   <Link
-                    href={`/workflows/${run.workflowId}`}
+                    href={`/workflows/${run.workflowId}?run=${run.id}`}
                     className="hover:underline"
                     onClick={(event) => event.stopPropagation()}
                   >

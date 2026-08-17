@@ -4,6 +4,8 @@ import { ErrorBoundary } from "react-error-boundary";
 import { formatDistanceToNow } from "date-fns";
 import { CheckCircle2Icon, CircleDashedIcon, XCircleIcon } from "lucide-react";
 import type { ComponentType } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -56,6 +58,9 @@ const ExecutionDetailContent = ({ runId }: ExecutionDetailContentProps) => {
           {formatRunDuration(run.startedAt, run.completedAt)}
         </span>
       </div>
+      <Button variant="outline" size="sm" asChild className="self-start">
+        <Link href={`/workflows/${run.workflowId}?run=${run.id}`}>View in canvas</Link>
+      </Button>
 
       {run.error && (
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
