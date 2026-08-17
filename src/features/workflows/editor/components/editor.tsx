@@ -30,6 +30,7 @@ import { editorAtom } from "../store/atoms";
 import { NodeType } from "@/generated/prisma/enums";
 import { ExecuteWorkflowButton } from "../../nodes/execute-workflow";
 import { useWorkflowExecutionStatus } from "@/features/workflows/hooks/use-workflow-execution-status";
+import { NodeOutputDrawer } from "./node-output-drawer";
 
 export const EditorLoading = () => {
   return <LoadingView message="Loading Editor." />;
@@ -144,6 +145,7 @@ export const Editor = ({ workflowID }: { workflowID: string }) => {
           </Panel>
         )}
       </ReactFlow>
+      <NodeOutputDrawer runId={runId} />
     </div>
   );
 };
