@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { WorkflowAnimation } from "./workflow-animation";
+import { WorkflowAnimation } from "./workflow-animation-lazy";
 
 /**
  * The hero doesn't illustrate the canvas — it sits on top of one. The
