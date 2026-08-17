@@ -2,7 +2,9 @@
 
 import { type Node, type NodeProps, Position, useReactFlow } from "@xyflow/react";
 import { BotIcon } from "lucide-react";
+import { useAtomValue } from "jotai";
 import { memo, useState } from "react";
+import { editorRunIdAtom } from "@/features/workflows/editor/store/atoms";
 import { BaseHandle } from "../../../react-flow/base-handle";
 import { BaseNode, BaseNodeContent } from "../../../react-flow/base-node";
 import { NodeStatus, NodeStatusIndicator } from "../../../react-flow/status-indicator";
@@ -24,6 +26,7 @@ type AgentNodeType = Node<AgentNodeData>;
 export const AgentNode = memo((props: NodeProps<AgentNodeType>) => {
   const { id, data } = props;
   const { setNodes, setEdges } = useReactFlow();
+  const runId = useAtomValue(editorRunIdAtom);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const handleOpenSettings = () => setDialogOpen(true);
@@ -53,6 +56,8 @@ export const AgentNode = memo((props: NodeProps<AgentNodeType>) => {
         onOpenChange={setDialogOpen}
         onSubmit={handleSubmit}
         defaultValues={data}
+        nodeId={id}
+        runId={runId}
       />
       <WorkflowNode
         name="AI Agent"

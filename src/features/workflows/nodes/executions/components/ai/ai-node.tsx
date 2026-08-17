@@ -1,10 +1,12 @@
 "use client";
 
 import { Node, NodeProps, useReactFlow } from "@xyflow/react";
+import { useAtomValue } from "jotai";
 
 import type { LucideIcon } from "lucide-react";
 import { memo, useState } from "react";
 import type { AIProviderType } from "@/features/credentials/lib/ai-providers";
+import { editorRunIdAtom } from "@/features/workflows/editor/store/atoms";
 import type { NodeStatus } from "../../../react-flow/status-indicator";
 import { BaseExecutionNode } from "../base-execution-node";
 import { AiFormValues, AiNodeDialog } from "./ai-dialog";
@@ -28,6 +30,7 @@ interface CreateAiNodeOptions {
 export function createAiNode({ providerType, providerLabel, icon }: CreateAiNodeOptions) {
   const AiNode = memo((props: NodeProps<AiNodeType>) => {
     const { setNodes } = useReactFlow();
+    const runId = useAtomValue(editorRunIdAtom);
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const handleOpenSettings = () => setDialogOpen(true);
@@ -64,6 +67,8 @@ export function createAiNode({ providerType, providerLabel, icon }: CreateAiNode
           defaultValues={nodeData}
           providerType={providerType}
           providerLabel={providerLabel}
+          nodeId={props.id}
+          runId={runId}
         />
         <BaseExecutionNode
           {...props}

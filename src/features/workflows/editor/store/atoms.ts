@@ -30,3 +30,13 @@ export const selectedOutputNodeIdAtom = atom<string | null>(null);
  * rather than a readOnly prop threaded through every node component.
  */
 export const editorReadOnlyAtom = atom<boolean>(false);
+
+/**
+ * The workflow's currently-active run, if any — set once Execute
+ * resolves (see Editor's handleExecuteStart) or hydrated from a `?run=`
+ * replay param (see Editor). An atom rather than Editor-local state so
+ * node dialogs (VariablePicker) can read it without prop-drilling
+ * through every node component, the same reasoning as
+ * selectedOutputNodeIdAtom.
+ */
+export const editorRunIdAtom = atom<string | null>(null);

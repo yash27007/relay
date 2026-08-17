@@ -25,8 +25,8 @@ import type {
 import "@xyflow/react/dist/style.css";
 import { nodeComponents } from "@/features/workflows/nodes/node-components";
 import { AddNodeButton } from "@/features/workflows/nodes/add-node-button";
-import { useSetAtom } from "jotai";
-import { editorAtom } from "../store/atoms";
+import { useAtom, useSetAtom } from "jotai";
+import { editorAtom, editorRunIdAtom } from "../store/atoms";
 import { NodeType } from "@/generated/prisma/enums";
 import { ExecuteWorkflowButton } from "../../nodes/execute-workflow";
 import { useWorkflowExecutionStatus } from "@/features/workflows/hooks/use-workflow-execution-status";
@@ -66,7 +66,7 @@ export const Editor = ({ workflowID }: { workflowID: string }) => {
     delay: 1000,
   });
 
-  const [runId, setRunId] = useState<string | null>(null);
+  const [runId, setRunId] = useAtom(editorRunIdAtom);
 
   const statusMessages = useWorkflowExecutionStatus(workflowID);
   useEffect(() => {
@@ -86,7 +86,7 @@ export const Editor = ({ workflowID }: { workflowID: string }) => {
     setNodes((currentNodes) =>
       currentNodes.map((node) => ({ ...node, data: { ...node.data, status: "initial" } })),
     );
-  }, []);
+  }, [setRunId]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) =>

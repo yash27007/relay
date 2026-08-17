@@ -31,7 +31,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import z from "zod";
 import Link from "next/link";
 import {
@@ -41,6 +41,7 @@ import {
 } from "@/features/credentials/lib/ai-providers";
 import { useApiKeysByType } from "@/features/credentials/hooks/use-credentials";
 import { ModelCombobox } from "@/features/credentials/components/model-combobox";
+import { VariablePicker } from "../variable-picker";
 import type { AgentNodeData } from "./types";
 
 const AGENT_SUPPORTED_PROVIDER_TYPES: AIProviderType[] = ["OPENAI", "ANTHROPIC", "GEMINI", "GROQ"];
@@ -71,6 +72,8 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: AgentFormValues) => void;
   defaultValues?: Partial<AgentNodeData>;
+  nodeId: string;
+  runId?: string | null;
 }
 
 function toFormDefaults(data: Partial<AgentNodeData> = {}): AgentFormValues {
@@ -88,11 +91,21 @@ function toFormDefaults(data: Partial<AgentNodeData> = {}): AgentFormValues {
   };
 }
 
-export const AgentNodeDialog = ({ open, onOpenChange, onSubmit, defaultValues = {} }: Props) => {
+export const AgentNodeDialog = ({
+  open,
+  onOpenChange,
+  onSubmit,
+  defaultValues = {},
+  nodeId,
+  runId,
+}: Props) => {
   const form = useForm<AgentFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: toFormDefaults(defaultValues),
   });
+
+  const [systemPromptCursor, setSystemPromptCursor] = useState(0);
+  const [userPromptCursor, setUserPromptCursor] = useState(0);
 
   // Reset the whole form to the node's saved values every time the dialog
   // opens — but NOT on every keystroke while it's open. Guards against
@@ -266,10 +279,22 @@ export const AgentNodeDialog = ({ open, onOpenChange, onSubmit, defaultValues = 
               name="systemPrompt"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>System Prompt (Optional)</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>System Prompt (Optional)</FormLabel>
+                    <VariablePicker
+                      nodeId={nodeId}
+                      runId={runId}
+                      value={field.value ?? ""}
+                      cursorPosition={systemPromptCursor}
+                      onInsert={field.onChange}
+                    />
+                  </div>
                   <FormControl>
                     <Textarea
                       {...field}
+                      onSelect={(event) =>
+                        setSystemPromptCursor(event.currentTarget.selectionStart ?? 0)
+                      }
                       placeholder="You are a helpful assistant with access to tools."
                       className="min-h-[80px] font-mono text-sm"
                     />
@@ -286,10 +311,22 @@ export const AgentNodeDialog = ({ open, onOpenChange, onSubmit, defaultValues = 
               name="userPrompt"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>User Prompt</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>User Prompt</FormLabel>
+                    <VariablePicker
+                      nodeId={nodeId}
+                      runId={runId}
+                      value={field.value}
+                      cursorPosition={userPromptCursor}
+                      onInsert={field.onChange}
+                    />
+                  </div>
                   <FormControl>
                     <Textarea
                       {...field}
+                      onSelect={(event) =>
+                        setUserPromptCursor(event.currentTarget.selectionStart ?? 0)
+                      }
                       placeholder="What's the weather in {{myApiCall.httpResponse.data.city}}?"
                       className="min-h-[120px] font-mono text-sm"
                     />

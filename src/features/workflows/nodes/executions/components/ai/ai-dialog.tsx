@@ -32,11 +32,12 @@ import { Switch } from "@/components/ui/switch";
 import { ModelCombobox } from "@/features/credentials/components/model-combobox";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import z from "zod";
 import Link from "next/link";
 import type { AIProviderType } from "@/features/credentials/lib/ai-providers";
 import { useApiKeysByType } from "@/features/credentials/hooks/use-credentials";
+import { VariablePicker } from "../variable-picker";
 
 const formSchema = z.object({
   variableName: z
@@ -64,6 +65,8 @@ interface Props {
   defaultValues?: Partial<AiFormValues>;
   providerType: AIProviderType;
   providerLabel: string;
+  nodeId: string;
+  runId?: string | null;
 }
 
 export const AiNodeDialog = ({
@@ -73,6 +76,8 @@ export const AiNodeDialog = ({
   defaultValues = {},
   providerType,
   providerLabel,
+  nodeId,
+  runId,
 }: Props) => {
   const { data: credentials, isLoading: isLoadingCredentials } = useApiKeysByType(providerType);
   const hasCredentials = Boolean(credentials?.length);
@@ -90,6 +95,9 @@ export const AiNodeDialog = ({
       jsonMode: defaultValues.jsonMode ?? false,
     },
   });
+
+  const [systemPromptCursor, setSystemPromptCursor] = useState(0);
+  const [userPromptCursor, setUserPromptCursor] = useState(0);
 
   useEffect(() => {
     if (open) {
@@ -212,10 +220,22 @@ export const AiNodeDialog = ({
               name="systemPrompt"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>System Prompt (Optional)</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>System Prompt (Optional)</FormLabel>
+                    <VariablePicker
+                      nodeId={nodeId}
+                      runId={runId}
+                      value={field.value ?? ""}
+                      cursorPosition={systemPromptCursor}
+                      onInsert={field.onChange}
+                    />
+                  </div>
                   <FormControl>
                     <Textarea
                       {...field}
+                      onSelect={(event) =>
+                        setSystemPromptCursor(event.currentTarget.selectionStart ?? 0)
+                      }
                       placeholder="You are a helpful assistant."
                       className="min-h-[80px] font-mono text-sm"
                     />
@@ -232,10 +252,22 @@ export const AiNodeDialog = ({
               name="userPrompt"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>User Prompt</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>User Prompt</FormLabel>
+                    <VariablePicker
+                      nodeId={nodeId}
+                      runId={runId}
+                      value={field.value}
+                      cursorPosition={userPromptCursor}
+                      onInsert={field.onChange}
+                    />
+                  </div>
                   <FormControl>
                     <Textarea
                       {...field}
+                      onSelect={(event) =>
+                        setUserPromptCursor(event.currentTarget.selectionStart ?? 0)
+                      }
                       placeholder="Summarize this: {{myApiCall.httpResponse.data}}"
                       className="min-h-[120px] font-mono text-sm"
                     />
