@@ -148,10 +148,22 @@ export async function runWorkflow({
       throw error;
     }
     await publishStatus(node.id, "success");
-    await recordNodeStatus(node, "success", {
-      input,
-      output: diffContext(input, result.context),
-    }).catch(() => {});
+    // diffContext can throw (e.g. a circular reference or BigInt anywhere
+    // in the context makes its internal JSON.stringify throw). That must
+    // never surface as this node's — or this run's — actual outcome, so
+    // it's computed outside recordNodeStatus's own `.catch`: an object
+    // literal's properties are evaluated before the call they're an
+    // argument to, so a throw here would happen before recordNodeStatus
+    // is even invoked and bypass that guard entirely. Fall back to
+    // `undefined` (not `{}`) — "we couldn't compute this" rather than a
+    // false claim that nothing changed.
+    let output: WorkflowContext | undefined;
+    try {
+      output = diffContext(input, result.context);
+    } catch {
+      output = undefined;
+    }
+    await recordNodeStatus(node, "success", { input, output }).catch(() => {});
 
     context = result.context;
 

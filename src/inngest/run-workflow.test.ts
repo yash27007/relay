@@ -207,6 +207,45 @@ describe("runWorkflow", () => {
     expect(successCall?.output).toEqual({ myHttp: { httpResponse: { status: 200 } } });
   });
 
+  test("a non-JSON-safe context (circular reference) never fails the run — output just comes back undefined", async () => {
+    const nodes = [makeNode("a", "HTTP_REQUEST")];
+    const connections: ReturnType<typeof makeConnection>[] = [];
+    const { publish } = makeFakePublish();
+    const { recordStep, calls: stepCalls } = makeFakeRecordStep();
+
+    // The key must already exist in the "before" context: diffContext's
+    // `!(key in before) || JSON.stringify(...) !== JSON.stringify(...)`
+    // short-circuits on a brand-new key without ever calling
+    // JSON.stringify, so a circular value only reaches (and throws from)
+    // JSON.stringify when the key was already present beforehand.
+    const returnsCircularContext: NodeExecutor = async ({ context }) => {
+      const circular: Record<string, unknown> = {};
+      circular.self = circular;
+      return { context: { ...context, circular } };
+    };
+
+    const finalContext = await runWorkflow({
+      nodes,
+      connections,
+      initialData: { circular: null },
+      step: fakeStep,
+      userId: "test-user",
+      workflowID: "workflow-1",
+      publish,
+      recordStep,
+      getExecutor: () => returnsCircularContext,
+    });
+
+    // The run itself completes successfully — diffContext throwing while
+    // building the recordStep object literal must not surface as this
+    // node's or this run's actual outcome.
+    expect(finalContext.circular).toBeDefined();
+
+    const successCall = stepCalls.find((call) => call.status === "success");
+    expect(successCall).toBeDefined();
+    expect(successCall?.output).toBeUndefined();
+  });
+
   test("recordStep is optional — omitting it changes nothing about execution", async () => {
     const calls: string[] = [];
     const nodes = [makeNode("a", "MANUAL_TRIGGER")];
