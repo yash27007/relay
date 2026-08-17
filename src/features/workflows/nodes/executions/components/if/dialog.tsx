@@ -29,6 +29,8 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: IfFormValues) => void;
   defaultValues?: Partial<IfFormValues>;
+  nodeId: string;
+  runId?: string | null;
 }
 
 import {
@@ -51,9 +53,10 @@ import {
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { VariablePicker } from "../variable-picker";
 
 export const OPERATOR_LABELS: Record<(typeof IF_OPERATORS)[number], string> = {
   equals: "Equals",
@@ -68,7 +71,14 @@ export const OPERATOR_LABELS: Record<(typeof IF_OPERATORS)[number], string> = {
   isNotEmpty: "Is not empty",
 };
 
-export const IfNodeDialog = ({ open, onOpenChange, onSubmit, defaultValues = {} }: Props) => {
+export const IfNodeDialog = ({
+  open,
+  onOpenChange,
+  onSubmit,
+  defaultValues = {},
+  nodeId,
+  runId,
+}: Props) => {
   const form = useForm<IfFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -77,6 +87,9 @@ export const IfNodeDialog = ({ open, onOpenChange, onSubmit, defaultValues = {} 
       compareValue: defaultValues.compareValue || "",
     },
   });
+
+  const [valueCursor, setValueCursor] = useState(0);
+  const [compareValueCursor, setCompareValueCursor] = useState(0);
 
   useEffect(() => {
     if (open) {
@@ -112,9 +125,24 @@ export const IfNodeDialog = ({ open, onOpenChange, onSubmit, defaultValues = {} 
               name="value"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Value</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Value</FormLabel>
+                    <VariablePicker
+                      nodeId={nodeId}
+                      runId={runId}
+                      value={field.value}
+                      cursorPosition={valueCursor}
+                      onInsert={field.onChange}
+                    />
+                  </div>
                   <FormControl>
-                    <Input {...field} placeholder="{{myApiCall.httpResponse.data.status}}" />
+                    <Input
+                      {...field}
+                      onSelect={(event) =>
+                        setValueCursor(event.currentTarget.selectionStart ?? 0)
+                      }
+                      placeholder="{{myApiCall.httpResponse.data.status}}"
+                    />
                   </FormControl>
                   <FormDescription>
                     The value to check. Reference an earlier node&apos;s output with{" "}
@@ -154,9 +182,24 @@ export const IfNodeDialog = ({ open, onOpenChange, onSubmit, defaultValues = {} 
                 name="compareValue"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Compare To</FormLabel>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Compare To</FormLabel>
+                      <VariablePicker
+                        nodeId={nodeId}
+                        runId={runId}
+                        value={field.value ?? ""}
+                        cursorPosition={compareValueCursor}
+                        onInsert={field.onChange}
+                      />
+                    </div>
                     <FormControl>
-                      <Input {...field} placeholder="200" />
+                      <Input
+                        {...field}
+                        onSelect={(event) =>
+                          setCompareValueCursor(event.currentTarget.selectionStart ?? 0)
+                        }
+                        placeholder="200"
+                      />
                     </FormControl>
                     <FormDescription>
                       The value to compare against. Also supports {"{{variables}}"}.

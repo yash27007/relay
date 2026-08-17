@@ -1,9 +1,11 @@
 "use client";
 
 import { Node, NodeProps, useReactFlow } from "@xyflow/react";
+import { useAtomValue } from "jotai";
 
 import { SplitIcon } from "lucide-react";
 import { memo, useState } from "react";
+import { editorRunIdAtom } from "@/features/workflows/editor/store/atoms";
 import type { NodeStatus } from "../../../react-flow/status-indicator";
 import { BaseBranchNode, type BranchOutput } from "../base-branch-node";
 import { SwitchFormValues, SwitchNodeDialog } from "./dialog";
@@ -14,6 +16,7 @@ type SwitchNodeType = Node<SwitchNodeData>;
 
 export const SwitchNode = memo((props: NodeProps<SwitchNodeType>) => {
   const { setNodes, setEdges } = useReactFlow();
+  const runId = useAtomValue(editorRunIdAtom);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const handleOpenSettings = () => setDialogOpen(true);
@@ -75,6 +78,8 @@ export const SwitchNode = memo((props: NodeProps<SwitchNodeType>) => {
         onOpenChange={setDialogOpen}
         onSubmit={handleSubmit}
         defaultValues={nodeData}
+        nodeId={props.id}
+        runId={runId}
       />
       <BaseBranchNode
         {...props}

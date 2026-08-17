@@ -1,9 +1,11 @@
 "use client"
 
 import { Node, NodeProps, useReactFlow } from "@xyflow/react"
+import { useAtomValue } from "jotai";
 
 import { GlobeIcon } from "lucide-react"
 import { memo, useState } from "react";
+import { editorRunIdAtom } from "@/features/workflows/editor/store/atoms";
 import type { NodeStatus } from "../../../react-flow/status-indicator";
 import { BaseExecutionNode } from "../base-execution-node";
 import type { HttpRequestData } from "./executor";
@@ -14,6 +16,7 @@ type HttpRequestNodeType = Node<HttpRequestData>;
 export const HttpRequestNode = memo((props: NodeProps<HttpRequestNodeType>) => {
 
     const { setNodes } = useReactFlow()
+    const runId = useAtomValue(editorRunIdAtom);
 
 
 
@@ -48,6 +51,8 @@ export const HttpRequestNode = memo((props: NodeProps<HttpRequestNodeType>) => {
                 onOpenChange={setDialogOpen}
                 onSubmit={handleSubmit}
                 defaultValues={nodeData}
+                nodeId={props.id}
+                runId={runId}
             />
             <BaseExecutionNode
                 {...props}

@@ -52,6 +52,8 @@ interface Props {
     onOpenChange: (open: boolean) => void;
     onSubmit: (values: HttpRequestSubmitValues) => void;
     defaultValues?: Partial<HttpRequestData>;
+    nodeId: string;
+    runId?: string | null;
 };
 import {
     Form,
@@ -74,10 +76,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form"
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PlusIcon, TrashIcon } from "lucide-react";
+import { VariablePicker } from "../variable-picker";
 
 function toFormDefaults(data: Partial<HttpRequestData> = {}): HttpRequestFormValues {
     return {
@@ -95,7 +98,9 @@ export const HttpRequestNodeDialog = ({
     open,
     onOpenChange,
     onSubmit,
-    defaultValues = {}
+    defaultValues = {},
+    nodeId,
+    runId,
 
 }: Props) => {
     const form = useForm<HttpRequestFormValues>({
@@ -107,6 +112,9 @@ export const HttpRequestNodeDialog = ({
         control: form.control,
         name: "aiToolParameters",
     });
+
+    const [endpointCursor, setEndpointCursor] = useState(0)
+    const [bodyCursor, setBodyCursor] = useState(0)
 
     useEffect(() => {
         if (open) {
@@ -202,10 +210,22 @@ export const HttpRequestNodeDialog = ({
                             name="endpoint"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Endpoint URL</FormLabel>
+                                    <div className="flex items-center justify-between">
+                                        <FormLabel>Endpoint URL</FormLabel>
+                                        <VariablePicker
+                                            nodeId={nodeId}
+                                            runId={runId}
+                                            value={field.value}
+                                            cursorPosition={endpointCursor}
+                                            onInsert={field.onChange}
+                                        />
+                                    </div>
                                     <FormControl>
                                         <Input
                                             {...field}
+                                            onSelect={(event) =>
+                                                setEndpointCursor(event.currentTarget.selectionStart ?? 0)
+                                            }
                                             placeholder="https://api.example.com/users/{{httpResponse.data.id}}"
                                         />
                                     </FormControl>
@@ -224,10 +244,22 @@ export const HttpRequestNodeDialog = ({
                                 name="body"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Body</FormLabel>
+                                        <div className="flex items-center justify-between">
+                                            <FormLabel>Body</FormLabel>
+                                            <VariablePicker
+                                                nodeId={nodeId}
+                                                runId={runId}
+                                                value={field.value ?? ""}
+                                                cursorPosition={bodyCursor}
+                                                onInsert={field.onChange}
+                                            />
+                                        </div>
                                         <FormControl>
                                             <Textarea
                                                 {...field}
+                                                onSelect={(event) =>
+                                                    setBodyCursor(event.currentTarget.selectionStart ?? 0)
+                                                }
                                                 placeholder={'{\n  \"name\": \"{{workflowData.userName}}\",\n  \"email\": \"{{workflowData.userEmail}}\",\n  \"role\": \"{{workflowData.userRole}}\",\n  \"status\": \"{{workflowData.userStatus}}\"\n}'}
                                                 className="min-h-[120px] font-mono text-sm"
                                             />

@@ -1,9 +1,11 @@
 "use client";
 
 import { Node, NodeProps, useReactFlow } from "@xyflow/react";
+import { useAtomValue } from "jotai";
 
 import { GitBranchIcon } from "lucide-react";
 import { memo, useState } from "react";
+import { editorRunIdAtom } from "@/features/workflows/editor/store/atoms";
 import type { NodeStatus } from "../../../react-flow/status-indicator";
 import { BaseBranchNode } from "../base-branch-node";
 import {
@@ -18,6 +20,7 @@ type IfNodeType = Node<IfNodeData>;
 
 export const IfNode = memo((props: NodeProps<IfNodeType>) => {
   const { setNodes } = useReactFlow();
+  const runId = useAtomValue(editorRunIdAtom);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const handleOpenSettings = () => setDialogOpen(true);
@@ -54,6 +57,8 @@ export const IfNode = memo((props: NodeProps<IfNodeType>) => {
         onOpenChange={setDialogOpen}
         onSubmit={handleSubmit}
         defaultValues={nodeData}
+        nodeId={props.id}
+        runId={runId}
       />
       <BaseBranchNode
         {...props}

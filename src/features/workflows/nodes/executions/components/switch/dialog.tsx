@@ -28,6 +28,8 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: SwitchFormValues) => void;
   defaultValues?: Partial<SwitchFormValues>;
+  nodeId: string;
+  runId?: string | null;
 }
 
 import {
@@ -42,16 +44,19 @@ import {
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PlusIcon, TrashIcon } from "lucide-react";
+import { VariablePicker } from "../variable-picker";
 
 export const SwitchNodeDialog = ({
   open,
   onOpenChange,
   onSubmit,
   defaultValues = {},
+  nodeId,
+  runId,
 }: Props) => {
   const form = useForm<SwitchFormValues>({
     resolver: zodResolver(formSchema),
@@ -65,6 +70,8 @@ export const SwitchNodeDialog = ({
     control: form.control,
     name: "cases",
   });
+
+  const [valueCursor, setValueCursor] = useState(0);
 
   useEffect(() => {
     if (open) {
@@ -96,9 +103,24 @@ export const SwitchNodeDialog = ({
               name="value"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Value</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Value</FormLabel>
+                    <VariablePicker
+                      nodeId={nodeId}
+                      runId={runId}
+                      value={field.value}
+                      cursorPosition={valueCursor}
+                      onInsert={field.onChange}
+                    />
+                  </div>
                   <FormControl>
-                    <Input {...field} placeholder="{{myApiCall.httpResponse.data.status}}" />
+                    <Input
+                      {...field}
+                      onSelect={(event) =>
+                        setValueCursor(event.currentTarget.selectionStart ?? 0)
+                      }
+                      placeholder="{{myApiCall.httpResponse.data.status}}"
+                    />
                   </FormControl>
                   <FormDescription>
                     The value to match against each case below. Reference an earlier
