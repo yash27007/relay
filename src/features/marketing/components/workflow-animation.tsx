@@ -1,3 +1,5 @@
+"use client";
+
 import { GlobeIcon, MousePointerIcon } from "lucide-react";
 import { NodeIcon } from "@/features/workflows/nodes/node-icon";
 
