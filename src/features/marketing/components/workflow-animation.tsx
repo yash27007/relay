@@ -12,12 +12,18 @@ const STEPS = [
 const LINE_DELAYS = ["0.5s", "2.5s"] as const;
 
 /**
- * A looping diagram of a workflow executing: the exact icons the real
- * node-selector/canvas use for Trigger, HTTP Request, and an AI provider
- * node, connected by animated lines a pulse travels along in sequence —
- * echoing the same loading/success visual language the editor already
- * uses for live execution (workflowRunChannel's status topic), just
- * looping for show instead of reporting a real run.
+ * A looping diagram of a workflow executing, built from the same visual
+ * primitives the real editor uses — not an abstract illustration. Node
+ * cards share BaseNode's `rounded-md` radius and get the same left/right
+ * handle dots BaseHandle renders; connectors are SVG paths with rounded
+ * end-caps rather than plain <line>s, drawn with the same horizontal-
+ * tangent geometry @xyflow/react's default bezier edge computes — which,
+ * for two handles at the same height (as here), correctly resolves to a
+ * straight line, exactly like the real canvas renders this layout. The
+ * pulse that travels along each connector, and the ring each node glows
+ * with, echo the same loading/success visual language the editor uses
+ * for live execution — looping here for show instead of reporting a
+ * real run.
  *
  * Pure CSS/SVG, no client JS, no animation library. Every animated
  * element shares one 6s duration + infinite iteration; each element's
@@ -32,16 +38,16 @@ const LINE_DELAYS = ["0.5s", "2.5s"] as const;
  */
 export function WorkflowAnimation() {
   return (
-    <div className="w-full max-w-xl">
+    <div className="w-full">
       <style>{`
         @keyframes relay-node-glow {
           0%, 8%, 100% { box-shadow: 0 0 0 0 transparent; border-color: var(--color-border); }
           4% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--color-primary) 25%, transparent); border-color: var(--color-primary); }
         }
         @keyframes relay-line-flow {
-          0%, 100% { stroke-dashoffset: 40; opacity: 0; }
+          0%, 100% { stroke-dashoffset: 60; opacity: 0; }
           2% { opacity: 1; }
-          22% { stroke-dashoffset: -40; opacity: 1; }
+          22% { stroke-dashoffset: -60; opacity: 1; }
           24% { opacity: 0; }
         }
         .relay-node { animation: relay-node-glow 6s ease-in-out infinite; }
@@ -54,34 +60,57 @@ export function WorkflowAnimation() {
       `}</style>
       <div className="flex items-center">
         {STEPS.map((stepItem, index) => (
-          <div key={stepItem.label} className="flex flex-1 items-center last:flex-none">
+          <div
+            key={stepItem.label}
+            className="flex flex-1 items-center last:flex-none"
+          >
             <div
-              className="relay-node flex shrink-0 flex-col items-center gap-2 rounded-2xl border-2 bg-card p-4"
+              className="relay-node relative flex shrink-0 flex-col items-center gap-2 rounded-md border bg-card p-4"
               style={{ animationDelay: stepItem.delay }}
             >
-              <NodeIcon icon={stepItem.icon} label={stepItem.label} imageSize={24} />
-              <span className="whitespace-nowrap text-xs font-medium text-muted-foreground">
+              {index > 0 && (
+                <span
+                  aria-hidden="true"
+                  className="absolute top-1/2 -left-[5px] size-[9px] -translate-y-1/2 rounded-full border bg-muted dark:bg-secondary"
+                />
+              )}
+              <NodeIcon
+                icon={stepItem.icon}
+                label={stepItem.label}
+                imageSize={24}
+              />
+              <span className="font-mono-plex text-[11px] whitespace-nowrap text-muted-foreground">
                 {stepItem.label}
               </span>
+              {index < STEPS.length - 1 && (
+                <span
+                  aria-hidden="true"
+                  className="absolute top-1/2 -right-[5px] size-[9px] -translate-y-1/2 rounded-full border bg-muted dark:bg-secondary"
+                />
+              )}
             </div>
             {index < STEPS.length - 1 && (
               <svg
                 aria-hidden="true"
                 className="mx-1 hidden flex-1 sm:block"
-                viewBox="0 0 100 4"
+                viewBox="0 0 100 32"
                 preserveAspectRatio="none"
-                style={{ height: 4, minWidth: 40 }}
+                style={{ height: 32, minWidth: 48 }}
               >
-                <line x1="0" y1="2" x2="100" y2="2" stroke="var(--color-border)" strokeWidth="2" />
-                <line
+                <path
+                  d="M 0 16 C 35 16, 65 16, 100 16"
+                  fill="none"
+                  stroke="var(--color-border)"
+                  strokeWidth="2"
+                />
+                <path
                   className="relay-line"
-                  x1="0"
-                  y1="2"
-                  x2="100"
-                  y2="2"
+                  d="M 0 16 C 35 16, 65 16, 100 16"
+                  fill="none"
                   stroke="var(--color-primary)"
                   strokeWidth="2"
-                  strokeDasharray="40 60"
+                  strokeLinecap="round"
+                  strokeDasharray="10 50"
                   style={{ animationDelay: LINE_DELAYS[index] }}
                 />
               </svg>
