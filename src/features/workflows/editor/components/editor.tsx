@@ -69,12 +69,17 @@ export const Editor = ({ workflowID }: { workflowID: string }) => {
 
   const [nodes, setNodes] = useState<Node[]>(workflow.nodes);
   const [edges, setEdges] = useState<Edge[]>(workflow.edges);
+  const [replayMismatch, setReplayMismatch] = useState(false);
 
   // Hydrate node status from the replay run once it loads — same pattern
   // as the live-status effect below (statusMessages), just fed from a
   // fetched run's steps instead of the realtime channel.
   useEffect(() => {
     if (!replayRun) return;
+    if (replayRun.workflowId !== workflowID) {
+      setReplayMismatch(true);
+      return;
+    }
     const statusByNodeId = new Map(
       replayRun.steps.map((step) => [
         step.nodeId,
@@ -88,7 +93,7 @@ export const Editor = ({ workflowID }: { workflowID: string }) => {
           : node,
       ),
     );
-  }, [replayRun]);
+  }, [replayRun, workflowID]);
 
   // React Flow's Controls/MiniMap/Background ship their own light-oriented
   // default styling — colorMode applies xyflow's built-in dark theme class
@@ -169,6 +174,10 @@ export const Editor = ({ workflowID }: { workflowID: string }) => {
   const hasManualTrigger = useMemo(() => {
     return nodes.some((node) => node.type === NodeType.MANUAL_TRIGGER)
   }, [nodes])
+
+  if (replayMismatch) {
+    throw new Error("This run does not belong to this workflow.");
+  }
 
   return (
     <div className="size-full">

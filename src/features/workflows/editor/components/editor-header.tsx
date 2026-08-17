@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { SaveIcon, LoaderIcon, CheckCircleIcon } from "lucide-react";
 import Link from "next/link";
+import type { Node } from "@xyflow/react";
 import {
   useSuspenseWorkflow,
   useUpdateWorkflow,
@@ -19,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { useAtom, useAtomValue } from "jotai";
 import {
   editorAtom,
+  editorReadOnlyAtom,
   autosaveEnabledAtom,
   autosaveStatusAtom,
 } from "../store/atoms";
@@ -46,6 +48,17 @@ export const EditorBreadcrumbs = ({
     </Breadcrumb>
   );
 };
+// `status` on node.data is a transient, per-run execution indicator (set
+// live by useWorkflowExecutionStatus / reset by handleExecuteStart in
+// Editor) — it must never be persisted or treated as a "real" edit.
+// Identical logic to the `stripStatus` helper in use-autosave.ts, kept
+// local here since Save's persistence path is independent of autosave's.
+const stripStatus = (node: Node): Node => {
+  if (!node.data || !("status" in node.data)) return node;
+  const { status: _status, ...rest } = node.data as Record<string, unknown>;
+  return { ...node, data: rest };
+};
+
 export const EditorSaveButton = ({
   workflowID: _workflowID,
 }: {
@@ -59,7 +72,7 @@ export const EditorSaveButton = ({
       return
     }
     console.log("hello")
-    const nodes = editor.getNodes()
+    const nodes = editor.getNodes().map(stripStatus)
     const edges = editor.getEdges()
     saveWorkflow.mutate({
       id: _workflowID,
@@ -190,13 +203,18 @@ export const EditorHeader = ({
 }: {
   workflowID: string;
 }) => {
+  const readOnly = useAtomValue(editorReadOnlyAtom);
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 bg-background">
       <div className="flex flex-row items-center justify-between gap-x-4 w-full">
         <EditorBreadcrumbs workflowID={workflowID} />
         <div className="ml-auto flex items-center gap-4">
-          <AutosaveToggle />
-          <EditorSaveButton workflowID={workflowID} />
+          {!readOnly && (
+            <>
+              <AutosaveToggle />
+              <EditorSaveButton workflowID={workflowID} />
+            </>
+          )}
         </div>
       </div>
     </header>

@@ -55,7 +55,7 @@ export function BaseNode({
             type="button"
             onClick={handleBadgeClick}
             aria-label="View this node's execution output"
-            className="absolute right-1.5 bottom-1.5 cursor-pointer"
+            className="nodrag absolute right-1.5 bottom-1.5 cursor-pointer"
           >
             <XCircleIcon className="size-2 text-red-500 fill-red-100" />
           </button>
@@ -68,7 +68,7 @@ export function BaseNode({
             type="button"
             onClick={handleBadgeClick}
             aria-label="View this node's execution output"
-            className="absolute right-1.5 bottom-1.5 cursor-pointer"
+            className="nodrag absolute right-1.5 bottom-1.5 cursor-pointer"
           >
             <CheckCircleIcon className="size-2 text-emerald-500 fill-emerald-100" />
           </button>

@@ -24,7 +24,8 @@ function JsonPanel({ label, value }: JsonPanelProps) {
   const isTruncated =
     value !== null &&
     typeof value === "object" &&
-    "truncated" in (value as Record<string, unknown>);
+    "truncated" in (value as Record<string, unknown>) &&
+    typeof (value as Record<string, unknown>).byteLength === "number";
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -52,7 +53,10 @@ interface DrawerContentProps {
 
 const DrawerContent = ({ runId, nodeId }: DrawerContentProps) => {
   const trpc = useTRPC();
-  const { data: run } = useSuspenseQuery(trpc.executions.getById.queryOptions({ id: runId }));
+  const { data: run } = useSuspenseQuery({
+    ...trpc.executions.getById.queryOptions({ id: runId }),
+    staleTime: 0,
+  });
   const runStep = run.steps.find((step) => step.nodeId === nodeId);
 
   if (!runStep) {

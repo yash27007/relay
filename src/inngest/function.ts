@@ -64,10 +64,10 @@ export const executeWorkflow = inngest.createFunction(
           : event.status === "success"
             ? RunStatus.SUCCESS
             : RunStatus.ERROR;
-      const input = safeSnapshot(event.input);
-      const output = safeSnapshot(event.output);
       await step
         .run(`record-step-${event.status}-${event.nodeId}`, async () => {
+          const input = safeSnapshot(event.input);
+          const output = safeSnapshot(event.output);
           await prisma.workflowRunStep.upsert({
             where: { runId_nodeId: { runId, nodeId: event.nodeId } },
             create: {
