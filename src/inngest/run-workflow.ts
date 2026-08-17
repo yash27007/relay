@@ -108,7 +108,7 @@ export async function runWorkflow({
     const executor = getExecutor(node.type as NodeType);
 
     await publishStatus(node.id, "loading");
-    await recordNodeStatus(node, "loading");
+    await recordNodeStatus(node, "loading").catch(() => {});
     let result: Awaited<ReturnType<NodeExecutor>>;
     try {
       result = await executor({
@@ -128,11 +128,13 @@ export async function runWorkflow({
       // status publish never masks the executor's real error, which is what
       // the run must actually fail with.
       await publishStatus(node.id, "error").catch(() => {});
-      await recordNodeStatus(node, "error", error instanceof Error ? error.message : String(error));
+      await recordNodeStatus(node, "error", error instanceof Error ? error.message : String(error)).catch(
+        () => {},
+      );
       throw error;
     }
     await publishStatus(node.id, "success");
-    await recordNodeStatus(node, "success");
+    await recordNodeStatus(node, "success").catch(() => {});
 
     context = result.context;
 

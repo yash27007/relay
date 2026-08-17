@@ -46,6 +46,8 @@ export function WorkflowAnimation() {
         .relay-line { animation: relay-line-flow 6s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) {
           .relay-node, .relay-line { animation: none; }
+          .relay-node { border-color: var(--color-primary); }
+          .relay-line { opacity: 0; }
         }
       `}</style>
       <div className="flex items-center">
@@ -62,6 +64,7 @@ export function WorkflowAnimation() {
             </div>
             {index < STEPS.length - 1 && (
               <svg
+                aria-hidden="true"
                 className="mx-1 hidden flex-1 sm:block"
                 viewBox="0 0 100 4"
                 preserveAspectRatio="none"
