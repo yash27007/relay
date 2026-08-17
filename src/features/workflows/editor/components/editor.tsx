@@ -26,7 +26,16 @@ import "@xyflow/react/dist/style.css";
 import { nodeComponents } from "@/features/workflows/nodes/node-components";
 import { AddNodeButton } from "@/features/workflows/nodes/add-node-button";
 import { useAtom, useSetAtom } from "jotai";
-import { editorAtom, editorRunIdAtom } from "../store/atoms";
+import { useQueryStates } from "nuqs";
+import { useTRPC } from "@/trpc/client";
+import { useQuery } from "@tanstack/react-query";
+import {
+  editorAtom,
+  editorReadOnlyAtom,
+  editorRunIdAtom,
+  autosaveEnabledAtom,
+} from "../store/atoms";
+import { editorParams } from "../params";
 import { NodeType } from "@/generated/prisma/enums";
 import { ExecuteWorkflowButton } from "../../nodes/execute-workflow";
 import { useWorkflowExecutionStatus } from "@/features/workflows/hooks/use-workflow-execution-status";
@@ -44,8 +53,42 @@ export const Editor = ({ workflowID }: { workflowID: string }) => {
   const setEditor = useSetAtom(editorAtom)
   const { data: workflow } = useSuspenseWorkflow(workflowID);
 
+  const [{ run: replayRunId }] = useQueryStates(editorParams);
+  const readOnly = Boolean(replayRunId);
+  const setReadOnly = useSetAtom(editorReadOnlyAtom);
+  const setAutosaveEnabled = useSetAtom(autosaveEnabledAtom);
+  const trpc = useTRPC();
+  // A plain (non-suspense) query, deliberately: useSuspenseQuery has no
+  // `enabled` option — suspense queries are always enabled by design, so
+  // gating this fetch on "does a replay param exist" requires the regular
+  // useQuery. On a normal (non-replay) visit this simply never fetches.
+  const { data: replayRun } = useQuery({
+    ...trpc.executions.getById.queryOptions({ id: replayRunId ?? "" }),
+    enabled: Boolean(replayRunId),
+  });
+
   const [nodes, setNodes] = useState<Node[]>(workflow.nodes);
   const [edges, setEdges] = useState<Edge[]>(workflow.edges);
+
+  // Hydrate node status from the replay run once it loads — same pattern
+  // as the live-status effect below (statusMessages), just fed from a
+  // fetched run's steps instead of the realtime channel.
+  useEffect(() => {
+    if (!replayRun) return;
+    const statusByNodeId = new Map(
+      replayRun.steps.map((step) => [
+        step.nodeId,
+        step.status === "SUCCESS" ? "success" : step.status === "ERROR" ? "error" : "initial",
+      ]),
+    );
+    setNodes((currentNodes) =>
+      currentNodes.map((node) =>
+        statusByNodeId.has(node.id)
+          ? { ...node, data: { ...node.data, status: statusByNodeId.get(node.id) } }
+          : node,
+      ),
+    );
+  }, [replayRun]);
 
   // React Flow's Controls/MiniMap/Background ship their own light-oriented
   // default styling — colorMode applies xyflow's built-in dark theme class
@@ -58,15 +101,30 @@ export const Editor = ({ workflowID }: { workflowID: string }) => {
     setMounted(true);
   }, []);
 
-  // Autosave hook - saves after 1 second of inactivity
+  useEffect(() => {
+    // Unconditional both ways, not just "disable on entry": if this same
+    // mounted Editor instance later navigates from a replay URL back to
+    // the plain editor route (readOnly: true -> false) without a full
+    // remount, autosave must re-enable — not stay silently off for the
+    // rest of the session.
+    setReadOnly(readOnly);
+    setAutosaveEnabled(!readOnly);
+  }, [readOnly, setReadOnly, setAutosaveEnabled]);
+
+  const [runId, setRunId] = useAtom(editorRunIdAtom);
+  useEffect(() => {
+    if (replayRunId) setRunId(replayRunId);
+  }, [replayRunId, setRunId]);
+
+  // Autosave hook - saves after 1 second of inactivity. Still called
+  // unconditionally (Rules of Hooks) — replay mode instead gates the
+  // actual write via autosaveEnabledAtom, set false above.
   useAutosave({
     workflowId: workflowID,
     nodes,
     edges,
     delay: 1000,
   });
-
-  const [runId, setRunId] = useAtom(editorRunIdAtom);
 
   const statusMessages = useWorkflowExecutionStatus(workflowID);
   useEffect(() => {
@@ -132,14 +190,19 @@ export const Editor = ({ workflowID }: { workflowID: string }) => {
         panOnScroll
         panOnDrag={false}
         selectionOnDrag
+        nodesDraggable={!readOnly}
+        nodesConnectable={!readOnly}
+        edgesReconnectable={!readOnly}
       >
         <Background />
         <Controls />
         <MiniMap />
-        <Panel position="top-right">
-          <AddNodeButton />
-        </Panel>
-        {hasManualTrigger && (
+        {!readOnly && (
+          <Panel position="top-right">
+            <AddNodeButton />
+          </Panel>
+        )}
+        {!readOnly && hasManualTrigger && (
           <Panel position="bottom-center">
             <ExecuteWorkflowButton workflowID={workflowID} onExecuteStart={handleExecuteStart} />
           </Panel>
