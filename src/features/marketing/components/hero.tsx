@@ -13,17 +13,34 @@ import { WorkflowAnimation } from "./workflow-animation-lazy";
 export function Hero() {
   return (
     <section className="relative overflow-hidden border-b">
+      {/* Ambient wash behind the whole hero — one soft light source the
+          copy panel and the canvas both sit under, instead of two
+          separately-lit islands. */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 opacity-[0.55] dark:opacity-[0.35]"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 70% 55% at 50% 15%, color-mix(in oklab, var(--color-primary) 16%, transparent), transparent 70%)",
+        }}
+      />
+
+      {/* The dot grid: previously masked to an ellipse hugging the copy
+          panel, so it faded to nothing under the node diagram (the "stray
+          square" was one isolated dot at the edge of that fade). Fading
+          only the top/bottom edges keeps it a continuous field the full
+          width of the hero, so panel and diagram read as one canvas. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.55] dark:opacity-[0.35]"
         style={{
           backgroundImage:
             "radial-gradient(circle, var(--color-border) 1px, transparent 1px)",
           backgroundSize: "26px 26px",
           maskImage:
-            "radial-gradient(ellipse 80% 60% at 50% 30%, black 30%, transparent 80%)",
+            "linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)",
           WebkitMaskImage:
-            "radial-gradient(ellipse 80% 60% at 50% 30%, black 30%, transparent 80%)",
+            "linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)",
         }}
       />
 
@@ -69,7 +86,9 @@ export function Hero() {
           </div>
         </div>
 
-        <WorkflowAnimation />
+        <div className="max-w-lg">
+          <WorkflowAnimation />
+        </div>
       </div>
     </section>
   );
